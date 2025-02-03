@@ -1,0 +1,292 @@
+.header-shadow-lg {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.navbar-nav {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.nav-item {
+  display: block;
+
+  text-align: center;
+  padding: 14px 16px;
+}
+.nav-item .nav-link {
+  color: #000000;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.nav-item .nav-link.active-link {
+  border: 3px solid #c58c4f;
+  border-radius: 25px;
+}
+
+.nav-item :hover {
+  background-color: #f0f0f0;
+  color: #c58c4f;
+  text-decoration: none;
+}
+.sticky-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+}
+
+.form-label {
+  font-size: 12px;
+  font-family: "poppins", sans-serif !important;
+  font-weight: 500;
+  line-height: 1.2em;
+}
+.form-check-input {
+  border: 3px solid rgb(180, 180, 180);
+}
+.form-check-input:checked {
+  background-color: #c58c4f;
+  border: 2px solid #c58c4f;
+}
+
+.background-gradient {
+  background: linear-gradient(to bottom, #fff 50%, #f5f5f5 50%);
+  height: 100vh;
+  position: relative;
+}
+
+h3 {
+  font-size: 24px;
+  font-family: "poppins", sans-serif !important;
+  font-weight: 600;
+  line-height: 1.5;
+}
+h4 {
+  font-size: 19px;
+  font-family: "poppins", sans-serif !important;
+  line-height: 1.5;
+  font-weight: 700;
+}
+h5 {
+  font-size: 14px;
+  font-family: "poppins", sans-serif !important;
+  line-height: 1.5;
+  font-weight: 700;
+}
+h6 {
+  font-size: 12px;
+  font-family: "poppins", sans-serif !important;
+  line-height: 1.5;
+  font-weight: 500;
+}
+ul li {
+  padding: 8.5px;
+  font-size: 14px;
+  font-family: "poppins", sans-serif !important;
+  font-weight: 400;
+  /* line-height: 1.5; */
+}
+i {
+  font-size: 0.875rem;
+  padding: 5px;
+  color: #c58c4f;
+}
+
+p {
+  font-size: 12px;
+  font-family: "poppins", sans-serif !important;
+  font-weight: 500;
+  line-height: 1.2em;
+}
+
+h2 {
+  font-size: 14px;
+
+  font-family: "poppins", sans-serif !important;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+button {
+  font-family: "poppins", sans-serif !important;
+  font-weight: 00;
+  line-height: 1;
+  font-size: 18px;
+}
+.dropdown-button {
+  font-size: 14px;
+}
+
+li a {
+  font-size: 14px;
+  text-decoration: none;
+  color: black;
+}
+
+li a:hover {
+  text-decoration: underline;
+}
+
+.card-text-top {
+  padding: 20px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 5;
+}
+span {
+  font-size: 015px;
+}
+.iti {
+  position: relative !important;
+  display: inline !important;
+}
+.cost {
+  align-items: end;
+  justify-content: end;
+}
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1050;
+}
+
+input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+input[type="radio"]:checked {
+  border: 2px solid #c58c4f;
+  background-color: #c58c4f;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  position: absolute;
+  top: 2px;
+  left: 7px;
+}
+.horizontal-line {
+  width: 50%;
+  height: 1px;
+  background: black;
+  border: 0;
+  margin: 0.5rem auto;
+}
+.summary p {
+  font-size: 12px;
+  font-family: "poppins", sans-serif !important;
+  font-weight: 500;
+  line-height: 1.2em;
+}
+.bg-caramel {
+  background-color: #c58c4f; /* Caramel color */
+}
+
+.bg-gradient {
+  background: linear-gradient(to right, #c58c4f, #d2a779); /* Caramel to yellow gradient */
+}
+
+.bg-primary {
+  background: linear-gradient(to right,   #8c8cff,   #8c8cff); /* Turquoise gradient */
+}
+
+.bg-warning {
+  background-color: #f39c12; /* Default yellow/orange color */
+}
+
+.bg-secondary {
+  background-color: #007bff; /* Blueish color */
+}
+.bg-secondary {
+  background: linear-gradient(to right, #4d4d94, #4d4d94); /* Blue gradient */
+}
+
+
+/* Style for the label */
+.label-1 {
+  display: flex; /* Align the checkbox and text horizontally */
+  align-items: center; /* Vertically center the checkbox and text */
+  font-size: 16px; /* Font size for the text */
+  color: #333; /* Text color */
+  margin-top: 30px; /* Add space above the label */
+  cursor: pointer; /* Pointer cursor on hover */
+}
+
+/* Style for the checkbox */
+.label-1 input[type="checkbox"] {
+  margin-right: 10px; /* Space between the checkbox and the text */
+  width: 18px; /* Checkbox size */
+  height: 18px;
+  accent-color: #007bff; /* Customize the checkbox color */
+}
+
+/* Style for the paragraph inside the label */
+.label-1 p {
+  margin: 0; /* Remove default margins for the paragraph */
+  font-size: 12px; /* Match the font size with the label */
+  color: inherit; /* Inherit the color from the label */
+}
+
+/* Optional: Add hover effect for the label */
+.label-1:hover {
+  color: #c58c4f; /* Change text color on hover */
+}
+/* TableStyles.css */
+/* TableStyles.css */
+
+/* Ensure the phone number input aligns with other form elements */
+/* .phone-number-container {
+  display: flex;
+  align-items: center;
+} */
+
+/* Adjust the width to make it consistent with other input fields */
+/* .phone-number-container input[type="tel"] {
+  width: 100%;
+} */
+
+/* Additional styling for the intl-tel-input container */
+/* .intl-tel-input {
+  width: 100%;
+}
+
+.intl-tel-input .selected-flag {
+  display: flex;
+  align-items: center;
+}
+
+.intl-tel-input .selected-flag .iti-arrow {
+  margin-left: 5px;
+} */
+
+         
