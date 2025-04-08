@@ -1,45 +1,59 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Toast, ToastContainer } from "react-bootstrap"; // Import Toast from React Bootstrap
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 
 const Summary = () => {
   const location = useLocation();
-  const { trainingDaysMax, data, formData, alertMessage, initialPackage } =
+  const navigate = useNavigate();
+  const { trainingDaysMax, data, formData, alertMessage } =
     location.state || {};
-  const [showAlert, setShowAlert] = useState(true);
 
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState("success");
+
+  const initialPackage = JSON.parse(
+    localStorage.getItem("packages")
+  )?.selectedPackage;
+  const storedData = JSON.parse(localStorage.getItem("pricingData")) || {};
+  const { total, vat, inclusive, oneOff, annual } = storedData;
+
+  const handleLogout = () => {
+    setShowToast(true);
+    setTimeout(() => {
+      setToastMessage("Logout successful. Redirecting...");
+      navigate("/", { replace: true });
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    }, 1000);
+  };
 
   return (
     <div>
-      {showAlert && alertMessage && (
-        <div
-          className={`alert ${
-            alertMessage.includes("Error") ? "alert-danger" : "alert-success"
-          } alert-dismissible fade show`}
-          role="alert"
-          style={{
-            position: "fixed",
-            top: "0",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: "1050",
-            width: "100%",
-            maxWidth: "600px",
-            textAlign: "center",
-          }}
+      <div className="d-flex justify-content-end p-3">
+        <p style={{ cursor: "pointer" }}>
+          <i className="fas fa-sign-out-alt" onClick={handleLogout}>
+            {" "}
+            Logout
+          </i>
+        </p>
+      </div>
+      <ToastContainer position="top-center" className="p-3">
+        <Toast
+          bg={toastVariant}
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={3000}
+          autohide
         >
-          {alertMessage}
-          <button
-            type="button"
-            className="btn-close"
-            aria-label="Close"
-            onClick={() => setShowAlert(false)}
-          ></button>
-        </div>
-      )}
-      <div className="container-fluid my-5 justify-content-center ">
+          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+
+      <div className="container-fluid my-5 justify-content-center">
         <div className="d-flex justify-content-center align-items-center">
           <div
             className="card shadow my-5"
@@ -65,26 +79,27 @@ const Summary = () => {
                 Client Summary
               </h3>
 
+              {/* Display the form data here */}
               <div className="row mb-1">
                 <div className="col-md-6 d-flex">
                   <div className="label" style={{ minWidth: "120px" }}>
-                    {" "}
                     <p>
                       <strong>Full Name:</strong>
                     </p>
                   </div>
-                  <p>{formData?.fullName || ""}</p>
+                  <p>{formData?.fullname || ""}</p>
                 </div>
                 <div className="col-md-6 d-flex">
                   <div className="label" style={{ minWidth: "100px" }}>
-                    {" "}
                     <p>
-                      <strong>Email Address:</strong>{" "}
+                      <strong>Email Address:</strong>
                     </p>
                   </div>
-                  <p>{formData?.email || ""}</p>
+                  <p>{formData?.emailAddress || ""}</p>
                 </div>
               </div>
+
+              {/* Other rows for Phone, Package, Organisation Name, etc. */}
               <div className="row mb-1">
                 <div className="col-md-6 d-flex">
                   <div className="label" style={{ minWidth: "120px" }}>
@@ -92,55 +107,19 @@ const Summary = () => {
                       <strong>Phone Number:</strong>
                     </p>
                   </div>
-                  <p> {formData?.phone || ""}</p>
+                  <p>{formData?.phone || ""}</p>
                 </div>
                 <div className="col-md-6 d-flex">
                   <div className="label" style={{ minWidth: "100px" }}>
                     <p>
-                      <strong>Package:</strong>{" "}
+                      <strong>Package:</strong>
                     </p>
-                  </div>{" "}
+                  </div>
                   <p>{initialPackage || ""}</p>
                 </div>
               </div>
-              <div className="row mb-1">
-                <div className="col-md">
-                  {" "}
-                  <p>
-                    <strong>Organisation Name:</strong>{" "}
-                    {formData?.companyName || ""}
-                  </p>
-                </div>
-              </div>
 
-              <div className="row mb-1">
-                <div className="col-md-4 d-flex">
-                  <div className="label" style={{ minWidth: "60px" }}>
-                    {" "}
-                    <p>
-                      <strong>Branches:</strong>
-                    </p>
-                  </div>
-                  <p> {formData?.branchCount || ""}</p>
-                </div>
-                <div className="col-md-4 d-flex">
-                  <div className="label" style={{ minWidth: "60px" }}>
-                    {" "}
-                    <p>
-                      <strong>Users:</strong>
-                    </p>
-                  </div>
-                  <p> {formData?.users || ""}</p>
-                </div>
-                <div className="col-md-4 d-flex">
-                  <div className="label" style={{ minWidth: "70px" }}>
-                    <p>
-                      <strong>T Sessions:</strong>{" "}
-                    </p>
-                  </div>
-                  <p>{trainingDaysMax}</p>
-                </div>
-              </div>
+              {/* Add other rows as needed for data like Organisation Name, Branches, etc. */}
 
               <div className="row mb-1">
                 <div className="col-md-4 d-flex">
@@ -150,14 +129,7 @@ const Summary = () => {
                       <strong>Total:</strong>{" "}
                     </p>
                   </div>
-                  <p>
-                    {new Intl.NumberFormat("en-GB").format(
-                      Number(
-                        Object.values(data).reduce((acc, curr) => acc + curr, 0)
-                      ) || 0
-                    )}{" "}
-                    Ksh
-                  </p>
+                  <p>{new Intl.NumberFormat("en-GB").format(total)} Ksh</p>
                 </div>
                 <div className="col-md-4 d-flex">
                   <div className="label" style={{ minWidth: "60px" }}>
@@ -166,18 +138,7 @@ const Summary = () => {
                       <strong>VAT (16%):</strong>{" "}
                     </p>
                   </div>
-                  <p>
-                    {new Intl.NumberFormat("en-GB").format(
-                      Number(
-                        0.16 *
-                          Object.values(data).reduce(
-                            (acc, curr) => acc + curr,
-                            0
-                          )
-                      )
-                    )}{" "}
-                    Ksh
-                  </p>
+                  <p>{new Intl.NumberFormat("en-GB").format(vat)} Ksh</p>
                 </div>
                 <div className="col-md-4 d-flex">
                   <div className="label" style={{ minWidth: "70px" }}>
@@ -186,22 +147,7 @@ const Summary = () => {
                       <strong>Inclusive:</strong>{" "}
                     </p>
                   </div>
-                  <p>
-                    {new Intl.NumberFormat("en-GB").format(
-                      Number(
-                        0.16 *
-                          Object.values(data).reduce(
-                            (acc, curr) => acc + curr,
-                            0
-                          ) +
-                          Object.values(data).reduce(
-                            (acc, curr) => acc + curr,
-                            0
-                          )
-                      )
-                    )}{" "}
-                    Ksh
-                  </p>
+                  <p>{new Intl.NumberFormat("en-GB").format(inclusive)} Ksh</p>
                 </div>
               </div>
               <div className="row">
@@ -212,25 +158,8 @@ const Summary = () => {
                       <strong>One-off:</strong>{" "}
                     </p>
                   </div>
-                  <p>
-                    {new Intl.NumberFormat("en-GB").format(
-                      (data[
-                        `totalConfiguration${capitalize(
-                          String(initialPackage.split(" ")[1])
-                        )}`
-                      ] || 0) +
-                        (data[
-                          `totalHosting${capitalize(
-                            String(initialPackage.split(" ")[1])
-                          )}`
-                        ] || 0) +
-                        (data[
-                          `totalTraining${capitalize(
-                            String(initialPackage.split(" ")[1])
-                          )}`
-                        ] || 0)
-                    )}{" "}
-                    Ksh
+                  <p style={{ margin: "0" }}>
+                    {new Intl.NumberFormat("en-GB").format(oneOff)} Ksh
                   </p>
                 </div>
                 <div className="col-md-4 d-flex">
@@ -239,20 +168,8 @@ const Summary = () => {
                       <strong>Annual:</strong>{" "}
                     </p>
                   </div>
-                  <p>
-                    {new Intl.NumberFormat("en-GB").format(
-                      (data[
-                        `totalUserAccess${capitalize(
-                          String(initialPackage.split(" ")[1])
-                        )}`
-                      ] || 0) +
-                        (data[
-                          `totalSupport${capitalize(
-                            String(initialPackage.split(" ")[1])
-                          )}`
-                        ] || 0)
-                    )}{" "}
-                    Ksh
+                  <p style={{ margin: "0" }}>
+                    {new Intl.NumberFormat("en-GB").format(annual)} Ksh
                   </p>
                 </div>
               </div>

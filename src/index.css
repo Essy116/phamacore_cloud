@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+body{
+  font-family: Poppins, sans-serif !important
+}
+
+
 .header-shadow-lg {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -9,23 +16,26 @@
 }
 .nav-item {
   display: block;
-
+  padding: 10px!important;
   text-align: center;
-  padding: 14px 16px;
+
 }
 .nav-item .nav-link {
   color: #000000;
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 500;
+  font-size: 16px;
+ 
 }
 
 .nav-item .nav-link.active-link {
   border: 3px solid #c58c4f;
-  border-radius: 25px;
+  border-radius: 10px;
+
+  padding: 4px 18px!important;
 }
 
 .nav-item :hover {
-  background-color: #f0f0f0;
+ 
   color: #c58c4f;
   text-decoration: none;
 }
@@ -44,14 +54,28 @@
   height: 100vh;
 }
 
-.form-label {
-  font-size: 12px;
-  font-family: "poppins", sans-serif !important;
-  font-weight: 500;
-  line-height: 1.2em;
+.form-label, input .custom-input .form-control .form-control-sm {
+  font-size: 12px!important;
+
+  font-weight: 400;
+
+}
+.form-control  {
+  font-size: 14px!important;
+  color: var(--cui-input-color, rgba(44, 56, 74, .95))!important;
+  font-weight: 400;
+  line-height: 1.5;
+  border:2px solid var(--cui-input-border-color, #b1b7c1);
+
+}
+.form-control:focus   {
+  outline: none !important;
+  border-color: #c58c4f !important;
+  box-shadow: 0 0 2px #c58c4f !important;
 }
 .form-check-input {
   border: 3px solid rgb(180, 180, 180);
+  
 }
 .form-check-input:checked {
   background-color: #c58c4f;
@@ -65,35 +89,36 @@
 }
 
 h3 {
-  font-size: 24px;
-  font-family: "poppins", sans-serif !important;
+
+ 
   font-weight: 600;
   line-height: 1.5;
 }
 h4 {
-  font-size: 19px;
-  font-family: "poppins", sans-serif !important;
+
+
   line-height: 1.5;
   font-weight: 700;
 }
 h5 {
-  font-size: 14px;
-  font-family: "poppins", sans-serif !important;
+  
+  
   line-height: 1.5;
-  font-weight: 700;
+  font-weight: 300;
 }
 h6 {
-  font-size: 12px;
-  font-family: "poppins", sans-serif !important;
+
+
   line-height: 1.5;
-  font-weight: 500;
+  font-weight:500;
 }
-ul li {
-  padding: 8.5px;
-  font-size: 14px;
-  font-family: "poppins", sans-serif !important;
+ul li{
+  padding:4px;
+  font-size: 12px;
+ 
   font-weight: 400;
-  /* line-height: 1.5; */
+  
+ 
 }
 i {
   font-size: 0.875rem;
@@ -103,38 +128,39 @@ i {
 
 p {
   font-size: 12px;
-  font-family: "poppins", sans-serif !important;
-  font-weight: 500;
-  line-height: 1.2em;
+ 
+  font-weight: 400;
+ 
 }
 
 h2 {
-  font-size: 14px;
 
-  font-family: "poppins", sans-serif !important;
+
+  
   font-weight: 400;
   line-height: 1.5;
 }
-
-button {
-  font-family: "poppins", sans-serif !important;
-  font-weight: 00;
-  line-height: 1;
-  font-size: 18px;
-}
-.dropdown-button {
-  font-size: 14px;
+.form-select {
+  
+  font-size: 12px!important;
+ 
+  font-weight: 400!important;
 }
 
-li a {
-  font-size: 14px;
-  text-decoration: none;
+.dropdown-item {
+  background-color: white; 
   color: black;
 }
 
-li a:hover {
-  text-decoration: underline;
+.dropdown-item:hover {
+  background-color: red; 
 }
+
+.dropdown-item:focus,
+.dropdown-item:active {
+  background-color: inherit !important;
+}
+
 
 .card-text-top {
   padding: 20px;
@@ -202,91 +228,140 @@ input[type="radio"]:checked::after {
   border: 0;
   margin: 0.5rem auto;
 }
+.table-light{
+  background-color: #007bff!important;
+}
 .summary p {
   font-size: 12px;
-  font-family: "poppins", sans-serif !important;
+ 
   font-weight: 500;
   line-height: 1.2em;
 }
 .bg-caramel {
-  background-color: #c58c4f; /* Caramel color */
+  background-color: #c58c4f; 
 }
 
 .bg-gradient {
-  background: linear-gradient(to right, #c58c4f, #d2a779); /* Caramel to yellow gradient */
+  background: linear-gradient(to right, #c58c4f, #d2a779);
 }
 
 .bg-primary {
-  background: linear-gradient(to right,   #8c8cff,   #8c8cff); /* Turquoise gradient */
+  background: linear-gradient(to right,  #F3CA48,#F3AD12); 
 }
 
 .bg-warning {
-  background-color: #f39c12; /* Default yellow/orange color */
+  background-color: #f39c12; 
 }
 
 .bg-secondary {
-  background-color: #007bff; /* Blueish color */
+  background-color: #007bff; 
 }
 .bg-secondary {
-  background: linear-gradient(to right, #4d4d94, #4d4d94); /* Blue gradient */
+  background: linear-gradient(to right, #c58c4f, #d2a779); 
 }
 
 
-/* Style for the label */
+
 .label-1 {
-  display: flex; /* Align the checkbox and text horizontally */
-  align-items: center; /* Vertically center the checkbox and text */
-  font-size: 16px; /* Font size for the text */
-  color: #333; /* Text color */
-  margin-top: 30px; /* Add space above the label */
-  cursor: pointer; /* Pointer cursor on hover */
+  display: flex; 
+  align-items: center; 
+  font-size: 16px;
+  color: #333;
+  margin-top: 30px; 
+  cursor: pointer; 
 }
 
-/* Style for the checkbox */
 .label-1 input[type="checkbox"] {
-  margin-right: 10px; /* Space between the checkbox and the text */
-  width: 18px; /* Checkbox size */
+  margin-right: 10px; 
+  width: 18px; 
   height: 18px;
-  accent-color: #007bff; /* Customize the checkbox color */
+  accent-color: #007bff;
 }
 
-/* Style for the paragraph inside the label */
+
 .label-1 p {
-  margin: 0; /* Remove default margins for the paragraph */
-  font-size: 12px; /* Match the font size with the label */
-  color: inherit; /* Inherit the color from the label */
+  margin: 0; 
+  font-size: 12px; 
+  color: inherit; 
 }
 
-/* Optional: Add hover effect for the label */
+
 .label-1:hover {
-  color: #c58c4f; /* Change text color on hover */
+  color: #c58c4f; 
 }
-/* TableStyles.css */
-/* TableStyles.css */
-
-/* Ensure the phone number input aligns with other form elements */
-/* .phone-number-container {
+.profile-container {
   display: flex;
   align-items: center;
-} */
-
-/* Adjust the width to make it consistent with other input fields */
-/* .phone-number-container input[type="tel"] {
-  width: 100%;
-} */
-
-/* Additional styling for the intl-tel-input container */
-/* .intl-tel-input {
-  width: 100%;
+  justify-content: center;
+  position: relative;
+  min-height: 50px;  /* Ensures the profile container takes up space */
+  visibility: visible; /* Always visible in terms of layout */
 }
 
-.intl-tel-input .selected-flag {
+.profile-icon {
+  background-color: #c58c4f;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
   display: flex;
+  top:0;
   align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.5rem; /* Adjust padding to ensure the circle grows with the name */
+  min-width: 50px; /* Minimum width */
+  min-height: 50px; /* Minimum height */
+  line-height: 1; /* Helps with vertical alignment of text */
+  border: none;
+  white-space: nowrap; /* Prevent text from wrapping */
 }
 
-.intl-tel-input .selected-flag .iti-arrow {
-  margin-left: 5px;
-} */
+.profile-icon span {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Truncate text if it's too long */
+}
 
-         
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: 120%;
+  background: white;
+  padding: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  width: 200px;
+  text-align: left;
+ 
+}
+
+
+
+.custom-btn {
+  font-size: 14px !important;
+  width: 100%;
+  
+}
+#footer {
+
+  position: fixed !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+}
+
+
+#footer1 {
+  position:relative ;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100%;
+
+}
+.copy-right .company-lg {
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  color: #5d3915;
+}

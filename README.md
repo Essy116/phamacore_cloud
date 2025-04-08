@@ -1,1 +1,5 @@
 ## Phamacore
+
+## Entry page
+
+## CorebaseLogo

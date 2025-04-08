@@ -1,38 +1,83 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../UI/header";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import packagesList from "../../packages.json";
+import { toast } from "react-toastify"; // If you're using toast from 'react-toastify', remove this if using React-Bootstrap
+import { Toast, ToastContainer } from "react-bootstrap";
 
-let packagesList = [
-  { packageNum: "PK001", description: "phAMACore Lite" },
-  { packageNum: "PK002", description: "phAMACore Standard" },
-  { packageNum: "PK003", description: "phAMACore Enterprise" },
-];
+// let packagesList = [
+//   { packageNum: "1", description: "phAMACore Lite" },
+//   { packageNum: "2", description: "phAMACore Standard" },
+//   { packageNum: "3", description: "phAMACore Enterprise" },
+// ];
 
 export default function Packages() {
   const location = useLocation();
+  const [packagess, setPackages] = useState([]);
   const [packageCode, setPackageCode] = useState("");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVariant, setToastVariant] = useState("danger");
   const [selectedPackage, setSelectedPackage] = useState(
     location.state?.package?.pkg || "phAMACore Standard"
   );
   const navigate = useNavigate();
+  async function packages() {
+    try {
+      const response = await axios.get(
+        "http://20.164.20.36:86/api/packages/GetAllPackages"
+      );
+      console.log(response);
+      setPackages(response.data.data);
+    } catch (error) {
+      console.log(error);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to fetch packages. Please try again later.";
+
+      setToastMessage(errorMessage);
+      setToastVariant("danger");
+      setShowToast(true);
+    }
+  }
+
+  useEffect(() => {
+    const savedPackage = JSON.parse(localStorage.getItem("packages"));
+    if (savedPackage) {
+      setSelectedPackage(savedPackage.selectedPackage);
+      setPackageCode(savedPackage.packageID);
+    }
+    packages(); // Fetch the packages when the component mounts
+  }, []);
 
   const handleCardClick = (packageId) => {
     setPackageCode(
       packagesList.find((pkg) => pkg.description === packageId)?.packageNum
     );
     setSelectedPackage(packageId);
+
+    // Store the selected package in localStorage to persist the selection
+    localStorage.setItem(
+      "selectedPackage",
+      JSON.stringify({
+        selectedPackage: packageId,
+      })
+    );
   };
 
   const cardStyle = (packageId) => ({
-    border: selectedPackage === packageId ? "5px solid #C58C4F " : "none",
+    border: selectedPackage === packageId ? "5px solid #C58C4F" : "none",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    transform: selectedPackage === packageId ? "scale(1.05)" : "none",ion: "relative",
+    transform: selectedPackage === packageId ? "scale(1.05)" : "none",
+    position: "relative",
   });
 
   const handleNextClick = () => {
     const maxTrainingDays =
       packageTrainingDays[selectedPackage].split(" to ")[1];
-    navigate("/form", {
+    navigate("/login", {
       replace: true,
       state: {
         selectedPackage,
@@ -41,6 +86,32 @@ export default function Packages() {
         packageCode: packageCode,
       },
     });
+    localStorage.setItem(
+      "packages",
+      JSON.stringify({
+        selectedPackage,
+        packageCode: packageCode,
+        packageID: packageCode,
+      })
+    );
+  };
+  const handleCardClick2 = (packageItem) => {
+    console.log(packageItem);
+
+    const updatedPackageCode = packagesList.find(
+      (pkg) => pkg.description === packageItem.packageName
+    )?.packageNum;
+
+    setPackageCode(updatedPackageCode);
+    setSelectedPackage(packageItem.packageName);
+
+    localStorage.setItem(
+      "packages",
+      JSON.stringify({
+        selectedPackage: packageItem.packageName,
+        packageID: packageItem.packageId,
+      })
+    );
   };
 
   const backgroundStyle = {
@@ -83,27 +154,28 @@ export default function Packages() {
 
   const footnoteStyle = {
     marginTop: "auto",
-    padding: "10px",
-    backgroundColor: "#f9f9f9",
+    padding: "10px 5px",
+    backgroundColor: "#f2f2f2",
     borderRadius: "5px",
     color: "#333",
-    fontSize: "0.875rem",
+    fontSize: "12px",
     textAlign: "center",
     fontWeight: "bold",
   };
 
   const popularBadgeStyle = {
     position: "absolute",
-    top: "-10px",
+    top: "-1em", // Adjust based on font size
     left: "50%",
     transform: "translateX(-50%)",
     backgroundColor: "#C58C4F",
     color: "white",
-    padding: "5px 15px",
+    padding: "0.5em 1em",
     borderRadius: "15px",
-    fontSize: "0.75rem",
+    fontSize: "012px",
     fontWeight: "bold",
     zIndex: 2,
+    whiteSpace: "nowrap", // Prevents text wrapping
   };
 
   const packageTrainingDays = {
@@ -156,42 +228,86 @@ export default function Packages() {
       <Header locationpath={"/"} />
       <div style={backgroundStyle}></div>
       <div className="container" style={containerStyle}>
-        <h1
+        <h4
           className="d-flex justify-content-center align-items-center  "
           style={{
-            padding: "10px",
-            fontSize: "2rem",
-            fontWeight: "800",
-            lineHeight: "50px",
+            padding: localStorage.getItem("user")
+              ? "10px 0 30px 0"
+              : "80px 0 30px 0", // Conditionally change padding
+
+            fontWeight: "600",
+            lineHeight: "20px",
             color: "#c58c4f",
-            fontFamily: " 'Poppins', sans-serif !important",
+            // fontFamily: " 'Poppins' !important",
             whiteSpace: "nowrap",
             alignItems: "center",
           }}
         >
-         Choose the plan that’s right for you
+          SELECT THE PLAN THAT SUITS YOU
+        </h4>
 
-        </h1>
         <div className="row justify-content-center">
+          {packagess.map((item) => (
+            <div className="col-md-4">
+              <div
+                className="card h-100 w-80 shadow-lg package-card"
+                style={cardStyle(item.packageName)}
+                onClick={() => handleCardClick2(item)}
+              >
+                {item.packageName === "phAMACore Standard" && (
+                  <div style={popularBadgeStyle}>Most Popular</div>
+                )}
+
+                <div className="card-text-top shadow d-flex justify-content-center align-items-center">
+                  <h5 className="mb-0">{item.packageName}</h5>
+                  <input
+                    type="radio"
+                    name="package"
+                    style={{
+                      ...radioButtonStyle,
+                      ...(selectedPackage === item.packageName
+                        ? radioButtonCheckedStyle
+                        : {}),
+                    }}
+                    checked={selectedPackage === item.packageName}
+                    onChange={() => handleCardClick2(item)}
+                  />
+                </div>
+                <div className="card-body d-flex flex-column">
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      textAlign: "center",
+                    }}
+                  >
+                    {item.packageName} characteristics include:
+                  </p>
+                  <ul className="list-unstyled">
+                    {item.features.map((feature, index) => (
+                      <li key={index}>
+                        <i className="bi bi-check-lg"></i> {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <div style={footnoteStyle}>
+                    Training Sessions:{" "}
+                    {packageTrainingDays[`${item.packageName}`]}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* <div className="row justify-content-center">
           <div className="col-md-4">
             <div
-              className="card h-100 shadow-lg package-card"
+              className="card h-100 w-80 shadow-lg package-card"
               style={cardStyle("phAMACore Lite")}
               onClick={() => handleCardClick("phAMACore Lite")}
             >
-              
               <div className="card-text-top shadow d-flex justify-content-center align-items-center">
-                <h4
-                  className="mb-0"
-                  style={{
-                    fontSize: "1.25rem",
-                    fontFamily: " 'poppins', sans-serif !important",
-                    lineHeight: "1.5",
-                    fontWeight: "700",
-                  }}
-                >
-                  phAMACore Lite
-                </h4>
+                <h5 className="mb-0">phAMACore Lite</h5>
                 <input
                   type="radio"
                   name="package"
@@ -206,17 +322,15 @@ export default function Packages() {
                 />
               </div>
               <div className="card-body d-flex flex-column">
-                <h2
+                <p
                   style={{
-                    fontSize: "1rem",
-
-                    fontFamily: "'poppins', sans-serif !important",
-                    fontWeight: "400",
-                    lineHeight: "1.5",
+                    fontSize: "14px",
+                    textAlign: "center",
                   }}
                 >
                   Phamacore Lite characteristics include:
-                </h2>
+                </p>
+
                 <ul className="list-unstyled">
                   {packageCharacteristics["phAMACore Lite"].map(
                     (char, index) => (
@@ -235,23 +349,13 @@ export default function Packages() {
 
           <div className="col-md-4">
             <div
-              className="card h-100 shadow-lg package-card"
+              className="card h-100 w-80 shadow-lg package-card"
               style={cardStyle("phAMACore Standard")}
               onClick={() => handleCardClick("phAMACore Standard")}
             >
-            <div style={popularBadgeStyle}>Most Popular</div>
+              <div style={popularBadgeStyle}>Most Popular</div>
               <div className="card-text-top shadow d-flex justify-content-center align-items-center">
-                <h4
-                  className="mb-0"
-                  style={{
-                    fontSize: "1.25rem",
-                    fontFamily: " 'poppins', sans-serif !important",
-                    lineHeight: "1.5",
-                    fontWeight: "700",
-                  }}
-                >
-                  phAMACore Standard
-                </h4>
+                <h5 className="mb-0">phAMACore Standard</h5>
                 <input
                   type="radio"
                   name="package"
@@ -266,17 +370,14 @@ export default function Packages() {
                 />
               </div>
               <div className="card-body d-flex flex-column">
-                <h2
+                <p
                   style={{
-                    fontSize: "1rem",
-
-                    fontFamily: "'poppins', sans-serif !important",
-                    fontWeight: "400",
-                    lineHeight: "1.5",
+                    fontSize: "14px",
+                    textAlign: "center",
                   }}
                 >
                   Phamacore Standard characteristics include:
-                </h2>
+                </p>
                 <ul className="list-unstyled">
                   {packageCharacteristics["phAMACore Standard"].map(
                     (char, index) => (
@@ -295,22 +396,12 @@ export default function Packages() {
 
           <div className="col-md-4">
             <div
-              className="card shadow-lg h-100 package-card"
+              className="card shadow-lg h-100 w-80 package-card"
               style={cardStyle("phAMACore Enterprise")}
               onClick={() => handleCardClick("phAMACore Enterprise")}
             >
               <div className="card-text-top shadow d-flex justify-content-center align-items-center">
-                <h4
-                  className="mb-0"
-                  style={{
-                    fontSize: "1.25rem",
-                    fontFamily: " 'poppins', sans-serif !important",
-                    lineHeight: "1.5",
-                    fontWeight: "700",
-                  }}
-                >
-                  phAMACore Enterprise
-                </h4>
+                <h5 className="mb-0">phAMACore Enterprise</h5>
                 <input
                   type="radio"
                   name="package"
@@ -325,17 +416,14 @@ export default function Packages() {
                 />
               </div>
               <div className="card-body d-flex flex-column">
-                <h2
+                <p
                   style={{
-                    fontSize: "1rem",
-
-                    fontFamily: "'poppins', sans-serif !important",
-                    fontWeight: "400",
-                    lineHeight: "1.5",
+                    fontSize: "14px",
+                    textAlign: "center",
                   }}
                 >
                   Phamacore Enterprise characteristics include:
-                </h2>
+                </p>
                 <ul className="list-unstyled">
                   {packageCharacteristics["phAMACore Enterprise"].map(
                     (char, index) => (
@@ -352,18 +440,29 @@ export default function Packages() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
+        <ToastContainer position="top-center" className="p-3">
+          <Toast
+            bg={toastVariant}
+            show={showToast}
+            onClose={() => setShowToast(false)}
+            delay={5000}
+            autohide
+          >
+            <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+          </Toast>
+        </ToastContainer>
+
         <div className="d-flex justify-content-end ">
           <button
-            className="btn btn-primary my-5"
+            className="btn btn-sm my-5"
             onClick={handleNextClick}
             style={{
               backgroundColor: "#C58C4F",
               borderColor: "#C58C4F",
-              padding: "10px 20px",
-              fontSize: "1.2rem",
-              width: "100%",
-              maxWidth: "200px",
+              color: "#FFF",
+
+              width: "20%",
             }}
           >
             Next
