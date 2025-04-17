@@ -22,10 +22,10 @@ export default function Header() {
 
   const getUserData = async () => {
     try {
-      const userEmail = localStorage.getItem("user");
+      const { email } = JSON.parse(localStorage.getItem("user"));
 
       const response = await axios.get(
-        `http://20.164.20.36:86/api/auth/GetUserByEmail/${userEmail}`,
+        `http://20.164.20.36:86/api/auth/GetUserByEmail/${email}`,
         {
           headers: {
             Accept: "application/json",

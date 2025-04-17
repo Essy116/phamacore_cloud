@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Toast, ToastContainer } from "react-bootstrap"; // Import Toast from React Bootstrap
+import { Toast, ToastContainer } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Summary = () => {
   const location = useLocation();

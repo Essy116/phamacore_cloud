@@ -21,8 +21,10 @@ const Login = () => {
   const location = useLocation();
   console.log(location);
   const [formData, setFormData] = useState({
-    userIdOrEmail: "",
+    Email: "",
     password: "",
+    userId: "",
+    cusCode: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,7 @@ const Login = () => {
       const response = await axios.post(
         "http://20.164.20.36:86/api/auth/LoginUser",
         {
+          cusCode: "",
           userId: "",
           email: formData.userIdOrEmail,
           password: formData.password,
@@ -70,7 +73,10 @@ const Login = () => {
       console.log("Login Successful:", response.data);
 
       const selectedPackage = location.state?.selectedPackage || "";
-      localStorage.setItem("user", formData.userIdOrEmail);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data?.token?.clientDetails)
+      );
 
       console.log("Navigating with state:", {
         packageCode: location.state?.packageCode,
@@ -81,6 +87,19 @@ const Login = () => {
         replace: true,
         state: { packageCode: location.state?.packageCode, selectedPackage },
       });
+
+      // if (response.data.success) {
+      //   if (response.data.role === "client") {
+      //     localStorage.setItem("client", JSON.stringify(response.data));
+      //   } else {
+      //     localStorage.setItem("user", formData.userIdOrEmail);
+      //   }
+
+      //   navigate("/form", {
+      //     replace: true,
+      //     state: { packageCode: location.state?.packageCode, selectedPackage },
+      //   });
+      // }
       setToastMessage(response.data.message || "Login successful!");
       setToastVariant("success");
       setShowToast(true);
@@ -96,6 +115,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
   const handlePrevClick = () => {
     navigate("/");
   };

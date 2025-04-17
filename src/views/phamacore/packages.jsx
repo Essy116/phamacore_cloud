@@ -58,7 +58,6 @@ export default function Packages() {
     );
     setSelectedPackage(packageId);
 
-    // Store the selected package in localStorage to persist the selection
     localStorage.setItem(
       "selectedPackage",
       JSON.stringify({

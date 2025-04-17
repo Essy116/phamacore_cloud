@@ -20,6 +20,7 @@ export default function Form() {
     JSON.parse(localStorage.getItem("packages"))?.selectedPackage ||
       "phAMACore Standard"
   );
+
   const [phone, setPhone] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [formErrors, setFormErrors] = useState({});
@@ -416,10 +417,10 @@ export default function Form() {
 
   const getUserData = async () => {
     try {
-      const user = localStorage.getItem("user");
+      const { email } = JSON.parse(localStorage.getItem("user"));
 
       const response = await axios.get(
-        `http://20.164.20.36:86/api/auth/GetUserByEmail/${user}`,
+        `http://20.164.20.36:86/api/auth/GetUserByEmail/${email}`,
         {
           headers: {
             Accept: "application/json",
@@ -455,12 +456,55 @@ export default function Form() {
     }
   };
 
-  if (!localStorage.getItem("user")) {
-    return navigate("/login", { replace: true });
-  }
+  const getClientDetails = async (psCusCode, email) => {
+    try {
+      const url = `http://20.164.20.36:86/api/client/GetClientDetails?psCusCode=${psCusCode}&email=${email}`;
 
+      const response = await axios.get(url, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          accessKey:
+            "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
+        },
+      });
+
+      console.log("API Response:", response.data);
+
+      const { psBranchCount, psUserCount, clientPackage } = response.data.data;
+      const packageId = clientPackage.packageId;
+      setPost((prev) => ({
+        ...prev,
+        psBranchCount,
+        psUserCount,
+        packageId,
+      }));
+      setSelectedPackage(clientPackage.packageName);
+    } catch (error) {
+      console.error("Error fetching client data:", error);
+
+      setToastMessage(
+        error.response?.data?.message ||
+          "An error occurred while fetching client data. Please try again."
+      );
+      setToastVariant("danger");
+      setShowToast(true);
+    }
+  };
+
+  // if (!localStorage.getItem("user") || !localStorage.getItem("client")) {
+  //   return navigate("/login", { replace: true });
+  // }
+  // if (!localStorage.getItem("client")) {
+  //   return navigate("/login", { replace: true });
+  // }
   useEffect(() => {
     getUserData();
+  }, []);
+  useEffect(() => {
+    const { email } = JSON.parse(localStorage.getItem("user"));
+
+    getClientDetails("", email);
   }, []);
 
   return (

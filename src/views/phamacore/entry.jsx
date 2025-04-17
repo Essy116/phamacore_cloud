@@ -381,7 +381,7 @@ export default function Entry() {
         </Card>
 
         <footer id="footer1">
-          <div className="copy-right text-center ">
+          <div className="copy-right text-center py-2">
             <p
               className="m-0 company-sm"
               style={{
