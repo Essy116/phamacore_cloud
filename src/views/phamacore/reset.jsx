@@ -54,7 +54,8 @@ const Reset = () => {
       setLoading(true);
 
       const resetToken = localStorage.getItem("resetauthToken");
-
+      const user = JSON.parse(localStorage.getItem("user"));
+      const role = user?.userType || "User";
       console.log("Reset Token:", resetToken);
 
       await axios.post(
@@ -63,7 +64,7 @@ const Reset = () => {
           token: resetToken,
           newPassword: formData.newPassword,
           confirmPassword: formData.confirmNewPassword,
-          role: "User",
+          role: role,
         },
         {
           headers: {

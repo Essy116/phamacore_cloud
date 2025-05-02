@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import cloudlogo from "../../assets/MicrosoftTeams-image.png";
+import phamacore from "../../assets/phamacore.png";
 import { Toast, ToastContainer } from "react-bootstrap";
+import packagesList from "../../packages.json";
 import "@fortawesome/fontawesome-free/css/all.min.css"; // Import FontAwesome
 
 export default function Header() {
@@ -20,33 +22,36 @@ export default function Header() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("success");
 
-  const getUserData = async () => {
-    try {
-      const { email } = JSON.parse(localStorage.getItem("user"));
+  const [selectedPackage, setSelectedPackage] = useState(
+    JSON.parse(localStorage.getItem("packages"))?.selectedPackage ||
+      "phAMACore Standard"
+  );
 
+  const getUserData = async (email) => {
+    try {
       const response = await axios.get(
-        `http://20.164.20.36:86/api/auth/GetUserByEmail/${email}`,
+        `http://20.164.20.36:86/api/auth/GetUserByEmail/${encodeURIComponent(
+          email
+        )}`,
         {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            accessKey:
+            accesskey:
               "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
           },
         }
       );
-
-      let phoneNo = response.data.phoneNumber?.split("");
+      let phoneNo = response.data.data.phoneNumber?.split("");
       phoneNo.splice(0, 1, "254");
 
-      setUser((prev) => ({
+      setPost((prev) => ({
         ...prev,
-        psCompanyName: response.data.organisationName,
-        fullname: response.data.name,
-        emailAddress: response.data.email,
+        psCompanyName: response.data.data.organisationName,
+        fullname: response.data.data.name,
+        emailAddress: response.data.data.email,
         phone: phoneNo.join(""),
       }));
-
       console.log("API Response:", response.data);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -60,16 +65,13 @@ export default function Header() {
     }
   };
 
-  const getFirstName = (fullname) => {
-    if (!fullname) return "";
-    const nameParts = fullname.split(" ");
-    return nameParts[0];
-  };
-
   const getNavLinkClass = (path) => {
     return location.pathname === path ? "nav-link active-link" : "nav-link";
   };
-
+  const pkg =
+    JSON.parse(localStorage.getItem("packages"))?.selectedPackage ||
+    "phAMACore Standard";
+  const [brand, plan] = pkg.split(" ");
   const handleLogout = () => {
     setShowToast(true);
     setTimeout(() => {
@@ -82,14 +84,37 @@ export default function Header() {
   };
 
   useEffect(() => {
-    getUserData();
+    const user = JSON.parse(localStorage.getItem("user"));
+    const email = user?.email || localStorage.getItem("email");
+
+    if (email) {
+      getUserData(email);
+    }
   }, []);
 
   return (
     <header className="header sticky-header">
       <nav className="navbar navbar-expand-lg bg-white shadow-sm">
         <div className="container-fluid d-flex justify-content-between align-items-center">
-          <div style={{ width: "200px" }}></div>
+          {localStorage.getItem("user") && (
+            <div className="image-container d-flex align-items-center">
+              <img src={phamacore} alt="Description" height="50px" />
+              <span className="ms-3 d-flex flex-column" style={{ gap: "0" }}>
+                <span style={{ color: "#c58c4f", fontSize: "16px" }}>
+                  {brand}
+                </span>
+                <span
+                  style={{
+                    color: "#ff4800",
+                    fontSize: "16px",
+                    marginTop: "-2px",
+                  }}
+                >
+                  {plan}
+                </span>
+              </span>
+            </div>
+          )}
 
           <div
             className="d-flex align-items-center"
@@ -135,10 +160,12 @@ export default function Header() {
             <div className="d-flex align-items-center">
               <div className="profile-container d-flex align-items-center">
                 <div
-                  className="profile-icon"
+                  className="profile-label"
                   onClick={() => setShowDropdown(!showDropdown)}
+                  style={{ cursor: "pointer", color: "#c58c4f" }}
                 >
-                  {getFirstName(user.fullname)}
+                  {user.fullname}
+                  <i className="fas fa-caret-down "></i>
                 </div>
 
                 {showDropdown && (

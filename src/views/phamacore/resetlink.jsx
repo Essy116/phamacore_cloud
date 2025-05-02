@@ -50,11 +50,11 @@ const ResetLink = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const encodedEmail = encodeURIComponent(email);
+      const user = JSON.parse(localStorage.getItem("user"));
 
       const response = await axios.post(
-        `http://20.164.20.36:86/api/user/RequestPasswordReset?email=${encodedEmail}`,
-        {},
+        `http://20.164.20.36:86/api/user/RequestPasswordReset?email=${email}`,
+
         {
           headers: {
             "Content-Type": "application/json",

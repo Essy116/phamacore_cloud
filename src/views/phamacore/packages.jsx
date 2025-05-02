@@ -19,9 +19,14 @@ export default function Packages() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("danger");
+  // const [selectedPackage, setSelectedPackage] = useState(
+  //   location.state?.package?.pkg || "phAMACore Standard"
+  // );
   const [selectedPackage, setSelectedPackage] = useState(
-    location.state?.package?.pkg || "phAMACore Standard"
+    JSON.parse(localStorage.getItem("packages"))?.selectedPackage ||
+      "phAMACore Standard"
   );
+
   const navigate = useNavigate();
   async function packages() {
     try {
@@ -42,15 +47,6 @@ export default function Packages() {
       setShowToast(true);
     }
   }
-
-  useEffect(() => {
-    const savedPackage = JSON.parse(localStorage.getItem("packages"));
-    if (savedPackage) {
-      setSelectedPackage(savedPackage.selectedPackage);
-      setPackageCode(savedPackage.packageID);
-    }
-    packages(); // Fetch the packages when the component mounts
-  }, []);
 
   const handleCardClick = (packageId) => {
     setPackageCode(
@@ -95,6 +91,13 @@ export default function Packages() {
     );
   };
   const handleCardClick2 = (packageItem) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log(user);
+    if (user && user.userType === "Client") {
+      console.log("User is not a client or userType is undefined");
+      return;
+    }
+
     console.log(packageItem);
 
     const updatedPackageCode = packagesList.find(
@@ -221,7 +224,14 @@ export default function Packages() {
       "Sales document & dispatch tracking.",
     ],
   };
-
+  useEffect(() => {
+    const savedPackage = JSON.parse(localStorage.getItem("packages"));
+    if (savedPackage) {
+      setSelectedPackage(savedPackage.selectedPackage);
+      setPackageCode(savedPackage.packageID);
+    }
+    packages(); // Fetch the packages when the component mounts
+  }, []);
   return (
     <>
       <Header locationpath={"/"} />
@@ -232,7 +242,7 @@ export default function Packages() {
           style={{
             padding: localStorage.getItem("user")
               ? "10px 0 30px 0"
-              : "80px 0 30px 0", // Conditionally change padding
+              : "80px 0 30px 0",
 
             fontWeight: "600",
             lineHeight: "20px",
@@ -451,22 +461,22 @@ export default function Packages() {
             <Toast.Body className="text-white">{toastMessage}</Toast.Body>
           </Toast>
         </ToastContainer>
-
-        <div className="d-flex justify-content-end ">
-          <button
-            className="btn btn-sm my-5"
-            onClick={handleNextClick}
-            style={{
-              backgroundColor: "#C58C4F",
-              borderColor: "#C58C4F",
-              color: "#FFF",
-
-              width: "20%",
-            }}
-          >
-            Next
-          </button>
-        </div>
+        {!localStorage.getItem("user") && (
+          <div className="d-flex justify-content-end ">
+            <button
+              className="btn btn-sm my-5"
+              onClick={handleNextClick}
+              style={{
+                backgroundColor: "#C58C4F",
+                borderColor: "#C58C4F",
+                color: "#FFF",
+                width: "20%",
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

@@ -30,6 +30,10 @@ export default function Form() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("danger");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const isUserType = user?.userType !== "User";
+
+  const [inputsDisabled, setInputsDisabled] = useState(isUserType);
 
   const [packageDetails, setPackageDetails] = useState({
     trainingDaysMin: 0,
@@ -40,17 +44,14 @@ export default function Form() {
     fullname: "",
     emailAddress: "",
     phone: "",
-    password: "",
     psUserCount: "",
     psCompanyName: "",
-    psBranchName: "",
-    psCusCode: "",
     psBranchCount: "",
     packageId: JSON.parse(localStorage.getItem("packages"))?.packageID || 2,
     role: "client",
     psPickCompany: "",
     isAccountActive: true,
-    createdAt: new Date().toISOString(),
+    createdAt: "2025-04-23T20:25:52.570Z",
   });
 
   const [data, setData] = useState([]);
@@ -323,22 +324,21 @@ export default function Form() {
           },
         }
       );
+      // ✅ Store psCusCode in localStorage
+
       setPhone("");
       setPost({
         fullname: "",
         emailAddress: "",
         phone: "",
-        password: "",
         psUserCount: "",
         psCompanyName: "",
-        psBranchName: "",
-        psCusCode: "",
         psBranchCount: "",
-        packageId: JSON.parse(localStorage.getItem("packages")).packageID || 0,
+        packageId: JSON.parse(localStorage.getItem("packages"))?.packageID || 2,
         role: "client",
         psPickCompany: "",
         isAccountActive: true,
-        createdAt: new Date().toISOString(),
+        createdAt: "2025-04-23T20:25:52.570Z",
       });
 
       console.log("API Response:", response.data);
@@ -415,17 +415,16 @@ export default function Form() {
   const monthlyAmount = totalAnnual / 12;
   const quarterlyAmount = totalAnnual / 4;
 
-  const getUserData = async () => {
+  const getUserData = async (email) => {
     try {
-      const { email } = JSON.parse(localStorage.getItem("user"));
-
       const response = await axios.get(
-        `http://20.164.20.36:86/api/auth/GetUserByEmail/${email}`,
+        "http://20.164.20.36:86/api/auth/GetUserByEmail",
         {
+          params: { email },
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            accessKey:
+            accesskey:
               "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
           },
         }
@@ -436,7 +435,7 @@ export default function Form() {
 
       setPost((prev) => ({
         ...prev,
-        psCompanyName: response.data.organisationName,
+        psCompanyName: response.data.name,
         fullname: response.data.name,
         emailAddress: response.data.email,
         phone: phoneNo.join(""),
@@ -455,31 +454,52 @@ export default function Form() {
       setShowToast(true);
     }
   };
-
-  const getClientDetails = async (psCusCode, email) => {
+  const getClientDetails = async (psCusCode) => {
     try {
-      const url = `http://20.164.20.36:86/api/client/GetClientDetails?psCusCode=${psCusCode}&email=${email}`;
-
-      const response = await axios.get(url, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          accessKey:
-            "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
-        },
-      });
+      const response = await axios.get(
+        "http://20.164.20.36:86/api/client/GetClientDetails",
+        {
+          params: { psCusCode },
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            accesskey:
+              "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
+          },
+        }
+      );
 
       console.log("API Response:", response.data);
 
-      const { psBranchCount, psUserCount, clientPackage } = response.data.data;
-      const packageId = clientPackage.packageId;
+      const { psBranchCount, psUserCount, pkgId, clientPackage } =
+        response.data.data;
+
       setPost((prev) => ({
         ...prev,
         psBranchCount,
         psUserCount,
-        packageId,
+        pkgId,
       }));
+
       setSelectedPackage(clientPackage.packageName);
+
+      localStorage.setItem(
+        "packages",
+        JSON.stringify({
+          selectedPackage: clientPackage.packageName,
+          packageID: pkgId,
+        })
+      );
+
+      localStorage.setItem(
+        "selectedPackage",
+        JSON.stringify({
+          selectedPackage: clientPackage.packageName,
+          packageID: pkgId,
+          psBranchCount,
+          psUserCount,
+        })
+      );
     } catch (error) {
       console.error("Error fetching client data:", error);
 
@@ -491,20 +511,19 @@ export default function Form() {
       setShowToast(true);
     }
   };
-
-  // if (!localStorage.getItem("user") || !localStorage.getItem("client")) {
-  //   return navigate("/login", { replace: true });
-  // }
-  // if (!localStorage.getItem("client")) {
-  //   return navigate("/login", { replace: true });
-  // }
   useEffect(() => {
-    getUserData();
-  }, []);
-  useEffect(() => {
-    const { email } = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    getClientDetails("", email);
+    if (user) {
+      if (user.email) {
+        getUserData(user.email);
+      }
+
+      if (user.userType !== "User" && user.psCusCode) {
+        console.log("Using cusCode for getClientDetails:", user.psCusCode);
+        getClientDetails(user.psCusCode);
+      }
+    }
   }, []);
 
   return (
@@ -526,7 +545,10 @@ export default function Form() {
         </Toast>
       </ToastContainer>
 
-      <div className="container-fluid my-5 justify-content-center">
+      <div
+        className="container-fluid  justify-content-center"
+        style={{ padding: "30px 0 30px 0" }}
+      >
         <div className="d-flex justify-content-center align-items-center">
           <div className="row ">
             <div className="col-md-6 pe-2">
@@ -622,6 +644,9 @@ export default function Form() {
                             }}
                             inputStyle={{
                               width: "100%",
+                              backgroundColor: inputsDisabled
+                                ? "white"
+                                : "white",
                               fontSize: "12px",
                               lineHeight: "1.5",
                               height: "calc(1.6em + 0.5rem + 2px)",
@@ -665,6 +690,10 @@ export default function Form() {
                       <select
                         id="packages"
                         name="packageId"
+                        style={{
+                          fontSize: "14px",
+                          backgroundColor: inputsDisabled ? "white" : "white", // Change color when disabled
+                        }} // use "disabled", not "readOnly"
                         className="form-select form-control form-control-sm"
                         value={
                           post.packageId ||
@@ -672,8 +701,8 @@ export default function Form() {
                             (pkg) => pkg.description === selectedPackage
                           )?.packageNum ||
                           ""
-                        } // Select package based on post.pkgId or fallback to description match
-                        onChange={(e) => handlePackageSelect(e)} // Trigger handlePackageSelect on change
+                        }
+                        onChange={(e) => handlePackageSelect(e)}
                       >
                         {packagesList.map((pkg) => (
                           <option key={pkg.packageNum} value={pkg.packageNum}>
@@ -729,7 +758,7 @@ export default function Form() {
                           type="number"
                           id="psBranchCount"
                           name="psBranchCount"
-                          className="form-control form-control-sm "
+                          className="form-control form-control-sm"
                           value={post.psBranchCount}
                           onChange={handleChange}
                           min="0"
@@ -745,14 +774,14 @@ export default function Form() {
                       </div>
 
                       <div className="col-md-4">
-                        <label htmlFor=" psBranchCount" className="form-label">
+                        <label htmlFor="psUserCount" className="form-label">
                           Users
                         </label>
                         <input
                           type="number"
                           id="psUserCount"
                           name="psUserCount"
-                          className="form-control form-control-sm "
+                          className="form-control form-control-sm"
                           value={post.psUserCount}
                           onChange={handleChange}
                           min="0"
@@ -766,6 +795,7 @@ export default function Form() {
                           </p>
                         )}
                       </div>
+
                       <div className="col-md-4">
                         <label htmlFor="trainingDays" className="form-label">
                           Training Sessions{" "}
@@ -859,43 +889,8 @@ export default function Form() {
                   <hr className="my-3" />
 
                   <div>
-                    {/* Checkbox to accept terms */}
-                    <label className="label-1">
-                      <input
-                        type="checkbox"
-                        checked={isAccepted}
-                        onChange={(e) => setIsAccepted(e.target.checked)}
-                      />
-                      <p>
-                        I agree to the
-                        <a
-                          href="/terms"
-                          style={{
-                            color: "blue",
-                            textDecoration: "underline",
-                            padding: "5px",
-                          }}
-                        >
-                          terms and conditions
-                        </a>
-                        and the
-                        <a
-                          href="/privacy-policy"
-                          style={{
-                            color: "blue",
-                            textDecoration: "underline",
-                            padding: "5px",
-                          }}
-                        >
-                          privacy policy
-                        </a>
-                        .
-                      </p>
-                    </label>
-
-                    {/* Conditional rendering */}
-                    {isAccepted && (
-                      <div style={{ marginTop: "20px", padding: "10px" }}>
+                    <div style={{ padding: "10px" }}>
+                      <div className="table-container">
                         {/* First Table */}
                         <table className="table table-bordered">
                           <thead className="table-light">
@@ -969,13 +964,14 @@ export default function Form() {
                             ))}
                           </tbody>
                         </table>
-
-                        {/* Second Table */}
-                        <div className="d-flex justify-content-end">
-                          <table
-                            className="table table-bordered"
-                            style={{ height: "40px" }}
-                          >
+                      </div>
+                      {/* Second Table */}
+                      <div className="d-flex justify-content-end">
+                        <div
+                          className="table-container"
+                          style={{ width: "100%" }}
+                        >
+                          <table className="table table-bordered">
                             <thead className="table-light">
                               <tr>
                                 <th
@@ -1086,8 +1082,13 @@ export default function Form() {
                             </tbody>
                           </table>
                         </div>
+                      </div>
 
-                        <div className="d-flex justify-content-start">
+                      <div className="d-flex justify-content-start">
+                        <div
+                          className="table-container"
+                          style={{ width: "100%" }}
+                        >
                           <table className="table table-bordered">
                             <thead className="table-light">
                               <tr>
@@ -1161,32 +1162,31 @@ export default function Form() {
                             </tbody>
                           </table>
                         </div>
-
-                        <div className="d-flex justify-content-center">
-                          <button
-                            type="submit"
-                            className="btn text-white custom-btn"
-                            disabled={isLoading}
-                            onClick={handleButtonClick}
-                            style={{
-                              backgroundColor: "#C58C4F",
-                              borderColor: "#C58C4F",
-                              color: "#FFF",
-                              fontSize: "14px",
-                            }}
-                          >
-                            {isLoading ? (
-                              <div
-                                className="spinner-border text-primary"
-                                role="status"
-                              ></div>
-                            ) : (
-                              "Place Order"
-                            )}
-                          </button>
-                        </div>
                       </div>
-                    )}
+
+                      <div className="d-flex justify-content-center">
+                        <button
+                          type="submit"
+                          className="btn text-white custom-btn"
+                          onClick={handleButtonClick}
+                          style={{
+                            backgroundColor: "#C58C4F",
+                            borderColor: "#C58C4F",
+                            color: "#FFF",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {isLoading ? (
+                            <div
+                              className="spinner-border text-primary"
+                              role="status"
+                            ></div>
+                          ) : (
+                            "Place Order"
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

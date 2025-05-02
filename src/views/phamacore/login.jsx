@@ -23,8 +23,6 @@ const Login = () => {
   const [formData, setFormData] = useState({
     Email: "",
     password: "",
-    userId: "",
-    cusCode: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,13 +50,10 @@ const Login = () => {
     }
 
     setLoading(true);
-
     try {
       const response = await axios.post(
         "http://20.164.20.36:86/api/auth/LoginUser",
         {
-          cusCode: "",
-          userId: "",
           email: formData.userIdOrEmail,
           password: formData.password,
         },
@@ -66,6 +61,8 @@ const Login = () => {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            accesskey:
+              "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9", // Add this line
           },
         }
       );
@@ -73,10 +70,27 @@ const Login = () => {
       console.log("Login Successful:", response.data);
 
       const selectedPackage = location.state?.selectedPackage || "";
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data?.token?.clientDetails)
-      );
+      if (response.data?.userType === "User") {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...response.data.userDetails,
+            userType: response.data.userType,
+            email: response.data.userDetails?.email,
+          })
+        );
+      } else {
+        const clientDetails = {
+          ...response.data.clientDetails,
+          userType: response.data.userType,
+          psCusCode: response.data.clientDetails?.cusCode,
+        };
+
+        localStorage.setItem("user", JSON.stringify(clientDetails));
+        localStorage.setItem("cusCode", response.data.clientDetails?.cusCode);
+
+        console.log("Stored cusCode:", response.data.clientDetails?.cusCode);
+      }
 
       console.log("Navigating with state:", {
         packageCode: location.state?.packageCode,
@@ -105,12 +119,6 @@ const Login = () => {
       setShowToast(true);
     } catch (error) {
       console.log("Error", error);
-
-      setToastMessage(
-        error.response?.data?.message || "An error occurred. Please try again."
-      );
-      setToastVariant("danger");
-      setShowToast(true);
     } finally {
       setLoading(false);
     }

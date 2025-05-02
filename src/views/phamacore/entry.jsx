@@ -94,7 +94,7 @@ export default function Entry() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            accessKey:
+            accesskey:
               "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
           },
         }

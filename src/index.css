@@ -231,6 +231,10 @@ input[type="radio"]:checked::after {
 .table-light{
   background-color: #007bff!important;
 }
+.table-container tr td p {
+margin: 0!important;
+
+}
 .summary p {
   font-size: 12px;
  
@@ -289,40 +293,40 @@ input[type="radio"]:checked::after {
 .label-1:hover {
   color: #c58c4f; 
 }
+.image-container {
+ 
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.image-container span{
+  font-weight: 600;
+
+
+}
 .profile-container {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 50px;  /* Ensures the profile container takes up space */
-  visibility: visible; /* Always visible in terms of layout */
+  min-height: 50px;
+  visibility: visible;
 }
 
-.profile-icon {
-  background-color: #c58c4f;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  display: flex;
-  top:0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  text-transform: uppercase;
+.profile-label {
+
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
-  padding: 0.5rem; /* Adjust padding to ensure the circle grows with the name */
-  min-width: 50px; /* Minimum width */
-  min-height: 50px; /* Minimum height */
-  line-height: 1; /* Helps with vertical alignment of text */
-  border: none;
-  white-space: nowrap; /* Prevent text from wrapping */
+  display: flex;
+  align-items: center;
+
+  padding: 8px 12px;
+  transition: background-color 0.2s ease;
 }
 
-.profile-icon span {
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Truncate text if it's too long */
-}
+
 
 .profile-dropdown {
   position: absolute;
@@ -332,10 +336,21 @@ input[type="radio"]:checked::after {
   padding: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  width: 200px;
+  width: 250px;
   text-align: left;
- 
+  z-index: 10;
 }
+
+.profile-dropdown p {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #333;
+}
+
+.profile-dropdown hr {
+  margin: 8px 0;
+}
+
 
 
 

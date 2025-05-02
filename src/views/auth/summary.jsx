@@ -24,35 +24,18 @@ const Summary = () => {
     setShowToast(true);
     setTimeout(() => {
       setToastMessage("Logout successful. Redirecting...");
-      navigate("/", { replace: true });
+      navigate("/login", { replace: true });
       localStorage.clear();
       sessionStorage.clear();
       window.location.reload();
-    }, 1000);
+    }, 150000);
   };
+  useEffect(() => {
+    handleLogout();
+  }, []);
 
   return (
     <div>
-      <div className="d-flex justify-content-end p-3">
-        <p style={{ cursor: "pointer" }}>
-          <i className="fas fa-sign-out-alt" onClick={handleLogout}>
-            {" "}
-            Logout
-          </i>
-        </p>
-      </div>
-      <ToastContainer position="top-center" className="p-3">
-        <Toast
-          bg={toastVariant}
-          show={showToast}
-          onClose={() => setShowToast(false)}
-          delay={3000}
-          autohide
-        >
-          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-        </Toast>
-      </ToastContainer>
-
       <div className="container-fluid my-5 justify-content-center">
         <div className="d-flex justify-content-center align-items-center">
           <div
