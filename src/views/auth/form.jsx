@@ -32,6 +32,7 @@ export default function Form() {
   const [toastVariant, setToastVariant] = useState("danger");
   const user = JSON.parse(localStorage.getItem("user"));
   const isUserType = user?.userType !== "User";
+  const isUserTypeClient = user?.userType === "Client";
 
   const [inputsDisabled, setInputsDisabled] = useState(isUserType);
 
@@ -418,9 +419,10 @@ export default function Form() {
   const getUserData = async (email) => {
     try {
       const response = await axios.get(
-        "http://20.164.20.36:86/api/auth/GetUserByEmail",
+        `http://20.164.20.36:86/api/auth/GetUserByEmail/${encodeURIComponent(
+          email
+        )}`,
         {
-          params: { email },
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
@@ -429,18 +431,21 @@ export default function Form() {
           },
         }
       );
+      let phoneNo = response.data.data.phoneNumber;
 
-      let phoneNo = response.data.phoneNumber?.split("");
-      phoneNo.splice(0, 1, "254");
+      if (phoneNo.startsWith("0")) {
+        phoneNo = "254" + phoneNo.slice(1);
+      }
 
       setPost((prev) => ({
         ...prev,
-        psCompanyName: response.data.name,
-        fullname: response.data.name,
-        emailAddress: response.data.email,
-        phone: phoneNo.join(""),
+        psCompanyName: response.data.data.organisationName,
+        fullname: response.data.data.name,
+        emailAddress: response.data.data.email,
+        phone: phoneNo,
       }));
-      setPhone(phoneNo.join(""));
+
+      setPhone(phoneNo);
 
       console.log("API Response:", response.data);
     } catch (error) {
@@ -591,6 +596,7 @@ export default function Form() {
                           id="fullname"
                           name="fullname"
                           autocomplete="off"
+                          readOnly={isUserType}
                           className="form-control form-control-sm  "
                           value={post.fullname}
                           onChange={handleChange}
@@ -613,6 +619,7 @@ export default function Form() {
                           id="emailAddress"
                           autocomplete="off"
                           name="emailAddress"
+                          readOnly={isUserType}
                           className="form-control form-control-sm "
                           value={post.emailAddress}
                           onChange={handleChange}
@@ -637,6 +644,7 @@ export default function Form() {
                             inputClass="form-control form-control-sm "
                             value={phone}
                             autocomplete="off"
+                            disabled={isUserType}
                             onChange={handleContact}
                             inputProps={{
                               id: "phone",
@@ -669,6 +677,7 @@ export default function Form() {
                           id="psCompanyName"
                           autocomplete="off"
                           name="psCompanyName"
+                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           value={post.psCompanyName}
                           onChange={handleChange}
@@ -690,6 +699,7 @@ export default function Form() {
                       <select
                         id="packages"
                         name="packageId"
+                        disabled={isUserType}
                         style={{
                           fontSize: "14px",
                           backgroundColor: inputsDisabled ? "white" : "white", // Change color when disabled
@@ -758,6 +768,7 @@ export default function Form() {
                           type="number"
                           id="psBranchCount"
                           name="psBranchCount"
+                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           value={post.psBranchCount}
                           onChange={handleChange}
@@ -781,6 +792,7 @@ export default function Form() {
                           type="number"
                           id="psUserCount"
                           name="psUserCount"
+                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           value={post.psUserCount}
                           onChange={handleChange}
@@ -1164,28 +1176,30 @@ export default function Form() {
                         </div>
                       </div>
 
-                      <div className="d-flex justify-content-center">
-                        <button
-                          type="submit"
-                          className="btn text-white custom-btn"
-                          onClick={handleButtonClick}
-                          style={{
-                            backgroundColor: "#C58C4F",
-                            borderColor: "#C58C4F",
-                            color: "#FFF",
-                            fontSize: "14px",
-                          }}
-                        >
-                          {isLoading ? (
-                            <div
-                              className="spinner-border text-primary"
-                              role="status"
-                            ></div>
-                          ) : (
-                            "Place Order"
-                          )}
-                        </button>
-                      </div>
+                      {!isUserTypeClient && (
+                        <div className="d-flex justify-content-center">
+                          <button
+                            type="submit"
+                            className="btn text-white custom-btn"
+                            onClick={handleButtonClick}
+                            style={{
+                              backgroundColor: "#C58C4F",
+                              borderColor: "#C58C4F",
+                              color: "#FFF",
+                              fontSize: "14px",
+                            }}
+                          >
+                            {isLoading ? (
+                              <div
+                                className="spinner-border text-primary"
+                                role="status"
+                              ></div>
+                            ) : (
+                              "Place Order"
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

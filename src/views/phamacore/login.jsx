@@ -70,26 +70,32 @@ const Login = () => {
       console.log("Login Successful:", response.data);
 
       const selectedPackage = location.state?.selectedPackage || "";
-      if (response.data?.userType === "User") {
+      if (response.data.data?.userType === "User") {
         localStorage.setItem(
           "user",
           JSON.stringify({
-            ...response.data.userDetails,
-            userType: response.data.userType,
-            email: response.data.userDetails?.email,
+            ...response.data.data.userDetails,
+            userType: response.data.data.userType,
+            email: response.data.data.userDetails?.email,
           })
         );
       } else {
         const clientDetails = {
-          ...response.data.clientDetails,
-          userType: response.data.userType,
-          psCusCode: response.data.clientDetails?.cusCode,
+          ...response.data.data.clientDetails,
+          userType: response.data.data.userType,
+          psCusCode: response.data.data.clientDetails?.cusCode,
         };
 
         localStorage.setItem("user", JSON.stringify(clientDetails));
-        localStorage.setItem("cusCode", response.data.clientDetails?.cusCode);
+        localStorage.setItem(
+          "cusCode",
+          response.data.data.clientDetails?.cusCode
+        );
 
-        console.log("Stored cusCode:", response.data.clientDetails?.cusCode);
+        console.log(
+          "Stored cusCode:",
+          response.data.data.clientDetails?.cusCode
+        );
       }
 
       console.log("Navigating with state:", {

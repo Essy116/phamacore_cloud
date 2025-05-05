@@ -45,7 +45,7 @@ export default function Header() {
       let phoneNo = response.data.data.phoneNumber?.split("");
       phoneNo.splice(0, 1, "254");
 
-      setPost((prev) => ({
+      setUser((prev) => ({
         ...prev,
         psCompanyName: response.data.data.organisationName,
         fullname: response.data.data.name,
