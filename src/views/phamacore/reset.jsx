@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
   Form,
@@ -29,6 +29,9 @@ const Reset = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("danger");
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("s_token");
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -53,7 +56,8 @@ const Reset = () => {
     try {
       setLoading(true);
 
-      const resetToken = localStorage.getItem("resetauthToken");
+      // const resetToken = localStorage.getItem("resetauthToken");
+      const resetToken = token;
       const user = JSON.parse(localStorage.getItem("user"));
       const role = user?.userType || "User";
       console.log("Reset Token:", resetToken);
@@ -61,6 +65,7 @@ const Reset = () => {
       await axios.post(
         "http://20.164.20.36:86/api/auth/ResetPassword",
         {
+          // token: resetToken,
           token: resetToken,
           newPassword: formData.newPassword,
           confirmPassword: formData.confirmNewPassword,
@@ -105,7 +110,7 @@ const Reset = () => {
             </div>
             <div className="text-center mb-2">
               <h5 className="mb-1">Reset Password</h5>
-              <p class="mb-0 text-secondary" style={{ fontSize: "10px" }}>
+              <p className="mb-0 text-secondary" style={{ fontSize: "10px" }}>
                 Please enter a new password
               </p>
             </div>
@@ -114,7 +119,7 @@ const Reset = () => {
               <p className="text-danger text-center">{errors.general}</p>
             )}
 
-            <Form onSubmit={handleSubmit} autocomplete="off">
+            <Form onSubmit={handleSubmit} autoComplete="off">
               {/* New Password */}
               <FormGroup className="mb-2 position-relative">
                 <FormLabel className="text-secondary">New Password</FormLabel>
