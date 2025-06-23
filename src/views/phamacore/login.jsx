@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
   Form,
@@ -30,7 +30,9 @@ const Login = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("danger");
-
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("s_token");
+  console.log(token);
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -51,18 +53,24 @@ const Login = () => {
 
     setLoading(true);
     try {
+      const resetToken = token;
+      console.log("Reset Token:", resetToken);
       const response = await axios.post(
         "http://20.164.20.36:86/api/auth/LoginUser",
         {
           email: formData.userIdOrEmail,
           password: formData.password,
         },
+
         {
+          params: {
+            token: resetToken,
+          },
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
             accesskey:
-              "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9", // Add this line
+              "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
           },
         }
       );
