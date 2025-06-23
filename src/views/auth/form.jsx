@@ -23,6 +23,7 @@ export default function Form() {
 
   const [phone, setPhone] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
@@ -49,6 +50,8 @@ export default function Form() {
     psCompanyName: "",
     psBranchCount: "",
     packageId: JSON.parse(localStorage.getItem("packages"))?.packageID || 2,
+
+    additionalNotes: "",
     role: "client",
     psPickCompany: "",
     isAccountActive: true,
@@ -297,6 +300,9 @@ export default function Form() {
     if (!values.fullname) {
       errors.fullname = "Required";
     }
+    if (!values.additionalNotes) {
+      errors.additionalNotes = "Required";
+    }
 
     setFormErrors(errors);
     console.log(errors);
@@ -336,6 +342,7 @@ export default function Form() {
         psCompanyName: "",
         psBranchCount: "",
         packageId: JSON.parse(localStorage.getItem("packages"))?.packageID || 2,
+        additionalNotes: "",
         role: "client",
         psPickCompany: "",
         isAccountActive: true,
@@ -409,8 +416,14 @@ export default function Form() {
   function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-  const toggleBilling = () => {
-    setIsAnnual((prev) => !prev);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleRadioChange = (event) => {
+    handleChange(event);
+    toggleDropdown(); // Close the dropdown after selection
   };
 
   const monthlyAmount = totalAnnual / 12;
@@ -760,7 +773,7 @@ export default function Form() {
                       </ul>
                     </div> */}
                     <div className="row mb-2">
-                      <div className="col-md-4">
+                      <div className="col-md-4 pe-0">
                         <label htmlFor="psBranchCount" className="form-label">
                           Branches
                         </label>
@@ -784,7 +797,7 @@ export default function Form() {
                         )}
                       </div>
 
-                      <div className="col-md-4">
+                      <div className="col-md-4 ">
                         <label htmlFor="psUserCount" className="form-label">
                           Users
                         </label>
@@ -808,7 +821,7 @@ export default function Form() {
                         )}
                       </div>
 
-                      <div className="col-md-4">
+                      <div className="col-md-4  ps-0 ">
                         <label htmlFor="trainingDays" className="form-label">
                           Training Sessions{" "}
                         </label>
@@ -823,6 +836,31 @@ export default function Form() {
                           value={packageDetails.trainingDaysMax}
                           readOnly
                         />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-12">
+                        <label htmlFor="additionalNotes" className="form-label">
+                          Additional Notes
+                        </label>
+                        <textarea
+                          id="additionalNotes"
+                          name="additionalNotes"
+                          readOnly={isUserType}
+                          className="form-control form-control-sm"
+                          onChange={handleChange}
+                          value={post.additionalNotes}
+                          placeholder="Additional information"
+                          style={{
+                            fontSize: "14px",
+                            height: "200px",
+                          }}
+                        />
+                        {formErrors.additionalNotes && (
+                          <p className="text-danger">
+                            {formErrors.additionalNotes}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </form>
