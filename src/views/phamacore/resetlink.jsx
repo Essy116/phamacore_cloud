@@ -26,6 +26,8 @@ const ResetLink = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastVariant, setToastVariant] = useState("danger");
+
+  console.log(token);
   const handleChange = (e) => {
     setEmail(e.target.value);
     setErrors({});
@@ -49,7 +51,6 @@ const ResetLink = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("authToken");
       const user = JSON.parse(localStorage.getItem("user"));
 
       const response = await axios.post(
@@ -58,6 +59,9 @@ const ResetLink = () => {
         {
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
+            accesskey:
+              "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
             Authorization: `Bearer ${token}`,
           },
         }
