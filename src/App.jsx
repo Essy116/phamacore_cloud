@@ -1,47 +1,44 @@
-// App.js
-import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Form from "./views/auth/form";
-import Packages from "./views/phamacore/packages";
-import Summary from "./views/auth/summary";
-import Terms from "./views/auth/terms";
-import Login from "./views/phamacore/login";
-import Reset from "./views/phamacore/reset";
-import ResetLink from "./views/phamacore/resetlink";
-import Entry from "./views/phamacore/entry";
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Form from './views/phamacore/form';
+import Card from './views/components/Card';
+import Summary from './views/phamacore/summary';
+import Terms from './views/phamacore/terms';
+import Login from './views/auth/login';
+import Reset from './views/reset/reset';
+import ResetLink from './views/reset/resetlink';
+import SignIn from './views/auth/signin';
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Packages />,
+    path: '/',
+    element: <Card />,
   },
   {
-    path: "/login",
+    path: '/login',
     element: <Login />,
   },
   {
-    path: "resetlink",
+    path: 'signin',
+    element: <SignIn />,
+  },
+  {
+    path: 'resetlink',
     element: <ResetLink />,
   },
   {
-    path: "reset",
+    path: 'reset',
     element: <Reset />,
   },
   {
-    path: "entry",
-    element: <Entry />,
-  },
-
-  {
-    path: "form",
+    path: 'form',
     element: <Form />,
   },
   {
-    path: "terms",
+    path: 'terms',
     element: <Terms />,
   },
   {
-    path: "summary",
+    path: 'summary',
     element: <Summary />,
   },
 ]);
