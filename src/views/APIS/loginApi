@@ -1,0 +1,26 @@
+import axios from 'axios';
+
+const loginApi = async ({ email, password, token }) => {
+  const response = await axios.post(
+    'http://20.164.20.36:86/api/auth/LoginUser',
+    {
+      email,
+      password,
+    },
+    {
+      params: {
+        token,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        accesskey:
+          'R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export default loginApi;
