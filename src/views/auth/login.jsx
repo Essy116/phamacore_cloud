@@ -223,7 +223,7 @@ const Login = () => {
                   <p className="m-0" style={{ color: '#6C757D' }}>
                     Don't have an account?{' '}
                     <a
-                      href="/entry"
+                      href="/signin"
                       className="signup-link"
                       style={{ color: 'rgb(197, 140, 79)', fontSize: '14px' }}
                     >

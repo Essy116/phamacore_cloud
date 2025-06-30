@@ -17,7 +17,7 @@ import {
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { BsLockFill } from 'react-icons/bs';
-import registerUser from '../APIS/registerUser';
+import registerUser from '../APIS/signinApi';
 
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
