@@ -1,0 +1,65 @@
+
+import axios from 'axios';
+
+const BASE_URL = 'http://20.164.20.36:86/api';
+const ALT_BASE_URL = 'http://corebasevm.southafricanorth.cloudapp.azure.com:5028/api';
+const HEADERS = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+  accessKey: 'R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9',
+};
+
+export const getCurrentUser = (token) =>
+  axios.get(`${BASE_URL}/v1/auth/current-user`, {
+    headers: {
+      ...HEADERS,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+
+export const getSelections = (token) => {
+  return axios.get(`${BASE_URL}/v1/user/selections`, {
+    headers: {
+      ...HEADERS,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+export const getCurrentClient = (token) => {
+  return axios.get(`${BASE_URL}/v1/auth/current-client`, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+
+
+export const createClient = (postData, token) =>
+  axios.post(`${BASE_URL}/v1/user/create-client`, postData, {
+    headers: {
+      ...HEADERS,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+
+
+
+export const getPhamacorePricing = (users, branches) =>
+  axios.get(`${ALT_BASE_URL}/NewClients/GetPhamacoreCloudPricing`, {
+    params: { users, branches },
+    headers: HEADERS,
+  });
+
+export const fetchClientPackages = (id = 123) =>
+  axios.get(`${BASE_URL}/packages/clientpackage/${id}`, {
+    headers: HEADERS,
+  });
+
+export const updateSelectionAPI = (data) =>
+  axios.put(`${BASE_URL}/v1/user/selections`, data, {
+    headers: HEADERS,
+  });
