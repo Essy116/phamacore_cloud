@@ -6,7 +6,7 @@ import phamacore from '../../assets/phamacore.png';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import packagesList from '../../packages.json';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { getUserByEmail } from '../APIS/headerApi';
+import { getCurrentUser } from '../APIS/headerApi';
 
 export default function Header() {
   const location = useLocation();
@@ -15,7 +15,7 @@ export default function Header() {
   const [user, setUser] = useState({
     fullname: '',
     phone: '',
-    emailAddress: '',
+    email: '',
     psCompanyName: '',
   });
 
@@ -27,31 +27,32 @@ export default function Header() {
     JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
       'phAMACore Standard'
   );
+  const getUserData = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
 
-  const getUserData = async (email) => {
     try {
-      const userData = await getUserByEmail(email);
+      const response = await getCurrentUser(token);
 
-      let phoneNo = response.data.data.phoneNumber?.split('');
-      phoneNo.splice(0, 1, '254');
+      const { phone, organisationName, fullname, email, userId, roleId } =
+        response.data;
+
+      const phoneNo = phone.startsWith('0') ? '254' + phone.slice(1) : phone;
 
       setUser((prev) => ({
         ...prev,
-        psCompanyName: response.data.data.organisationName,
-        fullname: response.data.data.name,
-        emailAddress: response.data.data.email,
-        phone: phoneNo.join(''),
+        organisationName,
+        fullname,
+        email,
+        phone: phoneNo,
+        userId: userId || '',
+        roleId: roleId || '',
       }));
+
       console.log('API Response:', response.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
-
-      setToastMessage(
-        error.response?.data?.message ||
-          'An error occurred while fetching user data. Please try again.'
-      );
-      setToastVariant('danger');
-      setShowToast(true);
     }
   };
 
@@ -166,8 +167,7 @@ export default function Header() {
                       <i className="fas fa-phone"></i> {user.phone || 'N/A'}
                     </p>
                     <p>
-                      <i className="fas fa-envelope"></i>{' '}
-                      {user.emailAddress || 'N/A'}
+                      <i className="fas fa-envelope"></i> {user.email || 'N/A'}
                     </p>
                     <hr />
                     <p style={{ cursor: 'pointer' }}>

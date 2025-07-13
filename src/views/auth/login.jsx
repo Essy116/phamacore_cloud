@@ -51,28 +51,51 @@ const Login = () => {
       const response = await loginApi({
         email: formData.userIdOrEmail,
         password: formData.password,
-        token,
       });
+
+      if (!response.success) {
+        const serverErrors = {};
+
+        if (response.errorCode === 'NOT_FOUND') {
+          serverErrors.userIdOrEmail = 'No account found with this email.';
+        } else if (response.status === 500) {
+          serverErrors.userIdOrEmail =
+            'Internal server error. Try again later.';
+        }
+
+        setErrors(serverErrors);
+        setToastMessage(response.message);
+        setToastVariant('danger');
+        setShowToast(true);
+        return;
+      }
 
       const selectedPackage = location.state?.selectedPackage || '';
 
-      if (response.userType === 'User') {
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            ...response.userDetails,
-            userType: response.userType,
-            email: response.userDetails?.email,
-          })
-        );
-      } else {
+      if (response.data.userType === 'User') {
+        const userData = {
+          userId: response.data.userDetails.userId,
+          email: response.data.userDetails.email,
+          roleId: response.data.userType,
+          token: response.data.token,
+        };
+
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', response.data.token);
+      } else if (
+        response.data.userType === 'Client' ||
+        response.data.userType === 'Pending'
+      ) {
         const clientDetails = {
-          ...response.clientDetails,
-          userType: response.userType,
-          psCusCode: response.clientDetails?.cusCode,
+          email: response.data.clientDetails.email,
+          cusCode: response.data.clientDetails.cusCode,
+          token: response.data.token,
         };
         localStorage.setItem('user', JSON.stringify(clientDetails));
-        localStorage.setItem('cusCode', response.clientDetails?.cusCode);
+        localStorage.setItem('cusCode', response.data.clientDetails.cusCode);
+        localStorage.setItem('token', response.data.token);
+      } else {
+        console.warn('Unhandled userType:', response.data.userType);
       }
 
       navigate('/form', {
@@ -83,12 +106,12 @@ const Login = () => {
         },
       });
 
-      setToastMessage(response.message || 'Login successful!');
+      setToastMessage(response.data.message || 'Login successful!');
       setToastVariant('success');
       setShowToast(true);
-    } catch (error) {
-      console.error('Login failed:', error);
-      setToastMessage('Login failed. Please check your credentials.');
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setToastMessage('Something went wrong. Try again later.');
       setToastVariant('danger');
       setShowToast(true);
     } finally {

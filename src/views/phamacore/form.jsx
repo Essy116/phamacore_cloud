@@ -8,11 +8,13 @@ import { Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import packagesList from '../../packages.json';
 import {
-  getUserByEmail,
-  getClientDetails,
+  getCurrentUser,
   createClient,
   getPhamacorePricing,
   fetchClientPackages,
+  updateSelectionAPI,
+  getSelections,
+  // updatePackageSelection,
 } from '../APIS/formApi';
 
 export default function Form() {
@@ -36,8 +38,8 @@ export default function Form() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
   const user = JSON.parse(localStorage.getItem('user'));
-  const isUserType = user?.userType !== 'User';
-  const isUserTypeClient = user?.userType === 'Client';
+  const isUserType = user?.roleId === 'User';
+  const isUserTypeClient = user?.roleId === 'Client';
 
   const [inputsDisabled, setInputsDisabled] = useState(isUserType);
 
@@ -46,20 +48,17 @@ export default function Form() {
     trainingDaysMax: 0,
     characteristics: [],
   });
+
   const [post, setPost] = useState({
-    fullname: '',
-    emailAddress: '',
-    phone: '',
     psUserCount: '',
-    psCompanyName: '',
     psBranchCount: '',
     packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
-
     additionalNotes: '',
-    role: 'client',
-    psPickCompany: '',
-    isAccountActive: true,
-    createdAt: '2025-04-23T20:25:52.570Z',
+    billingCycle: '',
+    phone: '',
+    email: '',
+    organisationName: '',
+    fullname: '',
   });
 
   const [data, setData] = useState([]);
@@ -242,21 +241,43 @@ export default function Form() {
 
   const handleChange = (e) => {
     setPost((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const { name } = e.target;
+    if (name === 'additionalNotes') {
+      // console.log('Additional Notes:', e.target.value);
+
+      updateSelection();
+    }
   };
   const handlePackageSelect = (event) => {
-    const packageDescription = packagesList.find(
-      (pkg) => pkg.packageNum === event.target.value
+    const selectedValue = event.target.value;
+    const selectedPkg = packagesList.find(
+      (pkg) => pkg.packageNum === selectedValue
     );
 
-    setSelectedPackage(packageDescription.description);
-    setPost((prevPost) => ({ ...prevPost, packageId: event.target.value }));
+    if (!selectedPkg) return;
+
+    setSelectedPackage(selectedPkg.description);
+
+    setPost((prevPost) => ({
+      ...prevPost,
+      packageId: selectedPkg.packageNum,
+    }));
+
+    localStorage.setItem(
+      'packages',
+      JSON.stringify({
+        selectedPackage: selectedPkg.description,
+        packageID: selectedPkg.packageNum,
+      })
+    );
   };
 
   const handleErrors = (values) => {
     const errors = {};
 
-    if (!values.psCompanyName) {
-      errors.psCompanyName = 'Required';
+    if (!values.organisationName) {
+      errors.organisationName = 'Required';
     }
     if (!values.psUserCount) {
       errors.psUserCount = 'Required';
@@ -266,8 +287,8 @@ export default function Form() {
       errors.phone = 'Required';
     }
 
-    if (!values.emailAddress) {
-      errors.emailAddress = 'Required';
+    if (!values.email) {
+      errors.email = 'Required';
     }
 
     if (!values.packageId) {
@@ -278,9 +299,6 @@ export default function Form() {
     }
     if (!values.fullname) {
       errors.fullname = 'Required';
-    }
-    if (!values.additionalNotes) {
-      errors.additionalNotes = 'Required';
     }
 
     setFormErrors(errors);
@@ -294,31 +312,35 @@ export default function Form() {
     if (handleErrors(post)) {
       return;
     }
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
 
     setIsLoading(true);
 
+    const payload = {
+      psUserCount: Number(post.psUserCount) || 0,
+      psBranchCount: Number(post.psBranchCount) || 0,
+      packageId: Number(post.packageId) || 2,
+      additionalNotes: post.additionalNotes || '',
+    };
+
     try {
-      const response = await createClient(post);
+      const response = await createClient(payload, token);
+
+      const data = response.data;
+
+      console.log('API Response:', data);
 
       setPhone('');
       setPost({
-        fullname: '',
-        emailAddress: '',
-        phone: '',
         psUserCount: '',
-        psCompanyName: '',
         psBranchCount: '',
         packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
         additionalNotes: '',
-        role: 'client',
-        psPickCompany: '',
-        isAccountActive: true,
-        createdAt: '2025-04-23T20:25:52.570Z',
       });
 
-      console.log('API Response:', response.data);
-
-      setToastMessage(response.data.message || 'Form submitted successfully!');
+      setToastMessage(data.message || 'Form submitted successfully!');
       setToastVariant('success');
       setShowToast(true);
 
@@ -346,6 +368,7 @@ export default function Form() {
       setIsLoading(false);
     }
   };
+
   const totalAnnual =
     (data[
       `totalUserAccess${capitalize(String(selectedPackage.split(' ')[1]))}`
@@ -395,97 +418,103 @@ export default function Form() {
   const monthlyAmount = totalAnnual / 12;
   const quarterlyAmount = totalAnnual / 4;
 
-  const getUserData = async (email) => {
+  const getUserData = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
+
     try {
-      const response = await getUserByEmail(email);
+      const response = await getCurrentUser(token);
+      const { phone, organisationName, fullname, email, userId, roleId } =
+        response.data;
 
-      let phoneNo = response.data.data.phoneNumber;
-
-      if (phoneNo.startsWith('0')) {
-        phoneNo = '254' + phoneNo.slice(1);
-      }
+      const phoneNo = phone?.startsWith('0') ? '254' + phone.slice(1) : phone;
 
       setPost((prev) => ({
         ...prev,
-        psCompanyName: response.data.data.organisationName,
-        fullname: response.data.data.name,
-        emailAddress: response.data.data.email,
-        phone: phoneNo,
+        organisationName,
+        fullname,
+        email,
+        phone: phoneNo || '',
+        userId: userId || '',
+        roleId: roleId || '',
       }));
 
       setPhone(phoneNo);
-
-      console.log('API Response:', response.data);
+      console.log('User data fetched successfully:', response.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
-
-      setToastMessage(
-        error.response?.data?.message ||
-          'An error occurred while fetching user data. Please try again.'
-      );
+      const msg =
+        error.response?.data?.detail ||
+        'Failed to fetch user data. Please log in again.';
+      setToastMessage(msg);
       setToastVariant('danger');
       setShowToast(true);
     }
   };
-  const getClientDetails = async (psCusCode) => {
+
+  const updateSelection = async () => {
+    const clientPackage = selectedPackage?.split(' ').at(-1) || 'Standard';
+
+    const payload = {
+      clientPackage,
+      userCount: Number(post.psUserCount) || 0,
+      branchCount: Number(post.psBranchCount) || 0,
+      billingCycle: post.billingCycle || 'MONTHLY',
+      additionalInfo: post.additionalNotes || '',
+    };
+
+    console.log('📦 Sending selection update payload:', payload);
+
     try {
-      const response = await getClientDetails(psCusCode);
+      const response = await updateSelectionAPI(payload);
+      console.log('✅ Update Selection Response:', response.data);
+    } catch (error) {
+      console.error(
+        '❌ Error updating selection:',
+        error.response?.data || error.message
+      );
+    }
+  };
 
-      console.log('API Response:', response.data);
+  const fetchSelections = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
 
-      const { psBranchCount, psUserCount, pkgId, clientPackage } =
-        response.data.data;
-
+    try {
+      const response = await getSelections(token);
+      const { userCount, branchCount, billingCycle } =
+        response.data.selections || {};
+      const clientPackage = selectedPackage?.split(' ').at(-1) || 'Standard';
+      console.log(selectedPackage?.split(' ')[1]);
       setPost((prev) => ({
         ...prev,
-        psBranchCount,
-        psUserCount,
-        pkgId,
+        psUserCount: userCount,
+        psBranchCount: branchCount,
+        billingCycle,
+        clientPackage,
       }));
 
-      setSelectedPackage(clientPackage.packageName);
-
-      localStorage.setItem(
-        'packages',
-        JSON.stringify({
-          selectedPackage: clientPackage.packageName,
-          packageID: pkgId,
-        })
-      );
-
-      localStorage.setItem(
-        'selectedPackage',
-        JSON.stringify({
-          selectedPackage: clientPackage.packageName,
-          packageID: pkgId,
-          psBranchCount,
-          psUserCount,
-        })
+      console.log(
+        '✅ Selections fetched successfully:',
+        response?.data?.selections
       );
     } catch (error) {
-      console.error('Error fetching client data:', error);
-
-      setToastMessage(
-        error.response?.data?.message ||
-          'An error occurred while fetching client data. Please try again.'
-      );
+      console.error('❌ Error fetching selections:', error);
+      const msg =
+        error.response?.data?.detail ||
+        'Failed to fetch selections. Please try again.';
+      setToastMessage(msg);
       setToastVariant('danger');
       setShowToast(true);
     }
   };
+
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-
-    if (user) {
-      if (user.email) {
-        getUserData(user.email);
-      }
-
-      if (user.userType !== 'User' && user.psCusCode) {
-        console.log('Using cusCode for getClientDetails:', user.psCusCode);
-        getClientDetails(user.psCusCode);
-      }
-    }
+    getUserData();
+    fetchSelections();
+    updateSelection();
   }, []);
 
   return (
@@ -553,7 +582,7 @@ export default function Form() {
                           id="fullname"
                           name="fullname"
                           autocomplete="off"
-                          readOnly={isUserType}
+                          readOnly={isUserTypeClient}
                           className="form-control form-control-sm  "
                           value={post.fullname}
                           onChange={handleChange}
@@ -576,9 +605,9 @@ export default function Form() {
                           id="emailAddress"
                           autocomplete="off"
                           name="emailAddress"
-                          readOnly={isUserType}
+                          readOnly={isUserTypeClient}
                           className="form-control form-control-sm "
-                          value={post.emailAddress}
+                          value={post.email}
                           onChange={handleChange}
                           style={{
                             fontSize: '14px',
@@ -601,7 +630,7 @@ export default function Form() {
                             inputClass="form-control form-control-sm "
                             value={phone}
                             autocomplete="off"
-                            disabled={isUserType}
+                            disabled={isUserTypeClient}
                             onChange={handleContact}
                             inputProps={{
                               id: 'phone',
@@ -633,10 +662,10 @@ export default function Form() {
                           type="text"
                           id="psCompanyName"
                           autocomplete="off"
-                          name="psCompanyName"
-                          readOnly={isUserType}
+                          name="organisationName"
+                          readOnly={isUserTypeClient}
                           className="form-control form-control-sm"
-                          value={post.psCompanyName}
+                          value={post.organisationName}
                           onChange={handleChange}
                           style={{
                             fontSize: '14px',
@@ -652,31 +681,51 @@ export default function Form() {
                     <h5 className="d-flex justify-content-start p-1" style={{}}>
                       Plan Details
                     </h5>
-                    <div className="mb-2">
-                      <select
-                        id="packages"
-                        name="packageId"
-                        disabled={isUserType}
-                        style={{
-                          fontSize: '14px',
-                          backgroundColor: inputsDisabled ? 'white' : 'white', // Change color when disabled
-                        }} // use "disabled", not "readOnly"
-                        className="form-select form-control form-control-sm"
-                        value={
-                          post.packageId ||
-                          packagesList.find(
-                            (pkg) => pkg.description === selectedPackage
-                          )?.packageNum ||
-                          ''
-                        }
-                        onChange={(e) => handlePackageSelect(e)}
-                      >
-                        {packagesList.map((pkg) => (
-                          <option key={pkg.packageNum} value={pkg.packageNum}>
-                            {pkg.description}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="row">
+                      <div className="col-md">
+                        <div className="mb-2">
+                          <select
+                            id="packages"
+                            name="packageId"
+                            disabled={isUserTypeClient}
+                            className="form-select form-control form-control-sm"
+                            value={post.packageId || ''}
+                            onChange={handlePackageSelect}
+                            style={{
+                              fontSize: '14px',
+                              backgroundColor: 'white',
+                            }}
+                          >
+                            {packagesList.map((pkg) => (
+                              <option
+                                key={pkg.packageNum}
+                                value={pkg.packageNum}
+                              >
+                                {pkg.description}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="col-md">
+                        <select
+                          id="billingCycle"
+                          name="billingCycle"
+                          className="form-select form-control form-control-sm"
+                          style={{ fontSize: '14px' }}
+                          value={post.billingCycle}
+                          onChange={handleChange}
+                        >
+                          <option value="MONTHLY">Monthly</option>
+                          <option value="QUARTERLY">Quarterly</option>
+                          <option value="ANNUAL">Annual</option>
+                        </select>
+                        {formErrors.billingCycle && (
+                          <p className="text-danger">
+                            {formErrors.billingCycle}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     {/* <div className="dropdown mb-2 text-left">
                       <button
@@ -725,7 +774,6 @@ export default function Form() {
                           type="number"
                           id="psBranchCount"
                           name="psBranchCount"
-                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           value={post.psBranchCount}
                           onChange={handleChange}
@@ -749,7 +797,6 @@ export default function Form() {
                           type="number"
                           id="psUserCount"
                           name="psUserCount"
-                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           value={post.psUserCount}
                           onChange={handleChange}
@@ -790,7 +837,6 @@ export default function Form() {
                         <textarea
                           id="additionalNotes"
                           name="additionalNotes"
-                          readOnly={isUserType}
                           className="form-control form-control-sm"
                           onChange={handleChange}
                           value={post.additionalNotes}
