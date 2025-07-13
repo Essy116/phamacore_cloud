@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Form from './views/phamacore/form';
-import Card from './views/components/Card';
+import Packages from './views/phamacore/packages';
 import Summary from './views/phamacore/summary';
 import Terms from './views/phamacore/terms';
 import Login from './views/auth/login';
@@ -11,7 +11,7 @@ import SignIn from './views/auth/signin';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Card />,
+    element: <Packages />,
   },
   {
     path: '/login',
