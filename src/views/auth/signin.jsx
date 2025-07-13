@@ -82,7 +82,7 @@ export default function SignIn() {
     setToastVariant('success');
     setShowToast(true);
 
-    setTimeout(() => navigate('/login'), 3000);
+    navigate('/login');
   };
 
   const handleNextClick = () => {
