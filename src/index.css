@@ -381,3 +381,92 @@ margin: 0!important;
   font-size: 9px !important;
   color: #5d3915;
 }
+/* CardComponent.css */
+
+.background-style {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  opacity: 0.6;
+  margin-top: 3rem;
+}
+
+.custom-container {
+  position: relative;
+  z-index: 1;
+  padding-top: 2rem;
+}
+
+.heading-text {
+  padding: 80px 0 30px 0;
+  font-weight: 600;
+  line-height: 20px;
+  color: #c58c4f;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radio-button {
+  color: #c58c4f;
+  margin-left: 10px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+}
+
+.radio-button-checked {
+  border: 1px solid #c58c4f;
+}
+
+.package-desc {
+  font-size: 14px;
+  text-align: center;
+}
+
+.footnote {
+  margin-top: auto;
+  padding: 10px 5px;
+  background-color: #f2f2f2;
+  border-radius: 5px;
+  color: #333;
+  font-size: 12px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.popular-badge {
+  position: absolute;
+  top: -1em;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #c58c4f;
+  color: white;
+  padding: 0.5em 1em;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+/* CardComponent.css */
+.next-btn {
+  background-color: #c58c4f !important;
+  border-color: #c58c4f !important;
+  color: #fff !important;
+  width: 20% !important;
+}
