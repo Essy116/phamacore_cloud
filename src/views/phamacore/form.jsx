@@ -11,7 +11,6 @@ import {
   getCurrentUser,
   createClient,
   getPhamacorePricing,
-  fetchClientPackages,
   updateSelectionAPI,
   getSelections,
   // updatePackageSelection,
@@ -30,6 +29,7 @@ export default function Form() {
   const [phone, setPhone] = useState('');
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [clientType, setClientType] = useState('');
   const [formErrors, setFormErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
@@ -38,10 +38,9 @@ export default function Form() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
   const user = JSON.parse(localStorage.getItem('user'));
-  const isUserType = user?.roleId === 'User';
-  const isUserTypeClient = user?.roleId === 'Client';
 
-  const [inputsDisabled, setInputsDisabled] = useState(isUserType);
+  const isClientOrPending =
+    user?.userType === 'Client' || user?.userType === 'Pending';
 
   const [packageDetails, setPackageDetails] = useState({
     trainingDaysMin: 0,
@@ -216,20 +215,6 @@ export default function Form() {
       setData(filteredDataObj);
     };
   };
-  async function packages() {
-    try {
-      const response = await fetchClientPackages(123);
-      console.log('Fetched packages:', response.data);
-    } catch (error) {
-      console.error('Package fetch error:', error);
-      setToastMessage(
-        error.response?.data?.message ||
-          'Failed to fetch packages. Please try again later.'
-      );
-      setToastVariant('danger');
-      setShowToast(true);
-    }
-  }
 
   const handleContact = (value) => {
     setPhone(value);
@@ -243,10 +228,14 @@ export default function Form() {
     setPost((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
     const { name } = e.target;
-    if (name === 'additionalNotes') {
-      // console.log('Additional Notes:', e.target.value);
-
-      updateSelection();
+    const data = { ...post, [name]: e.target.value };
+    if (
+      name === 'additionalNotes' ||
+      name === 'psUserCount' ||
+      name === 'psBranchCount' ||
+      name === 'billingCycle'
+    ) {
+      updateSelection(data);
     }
   };
   const handlePackageSelect = (event) => {
@@ -271,6 +260,10 @@ export default function Form() {
         packageID: selectedPkg.packageNum,
       })
     );
+
+    const data = { ...post, packageId: selectedPkg.description };
+    console.log(data);
+    updateSelection(data);
   };
 
   const handleErrors = (values) => {
@@ -425,8 +418,16 @@ export default function Form() {
 
     try {
       const response = await getCurrentUser(token);
-      const { phone, organisationName, fullname, email, userId, roleId } =
-        response.data;
+      const {
+        phone,
+        organisationName,
+        fullname,
+        userType,
+        email,
+        userId,
+        roleId,
+        clientPackage,
+      } = response.data;
 
       const phoneNo = phone?.startsWith('0') ? '254' + phone.slice(1) : phone;
 
@@ -438,8 +439,9 @@ export default function Form() {
         phone: phoneNo || '',
         userId: userId || '',
         roleId: roleId || '',
+        packageId: clientPackage || 'Lite',
       }));
-
+      setClientType(userType);
       setPhone(phoneNo);
       console.log('User data fetched successfully:', response.data);
     } catch (error) {
@@ -453,30 +455,6 @@ export default function Form() {
     }
   };
 
-  const updateSelection = async () => {
-    const clientPackage = selectedPackage?.split(' ').at(-1) || 'Standard';
-
-    const payload = {
-      clientPackage,
-      userCount: Number(post.psUserCount) || 0,
-      branchCount: Number(post.psBranchCount) || 0,
-      billingCycle: post.billingCycle || 'MONTHLY',
-      additionalInfo: post.additionalNotes || '',
-    };
-
-    console.log('📦 Sending selection update payload:', payload);
-
-    try {
-      const response = await updateSelectionAPI(payload);
-      console.log('✅ Update Selection Response:', response.data);
-    } catch (error) {
-      console.error(
-        '❌ Error updating selection:',
-        error.response?.data || error.message
-      );
-    }
-  };
-
   const fetchSelections = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
@@ -484,16 +462,23 @@ export default function Form() {
 
     try {
       const response = await getSelections(token);
-      const { userCount, branchCount, billingCycle } =
-        response.data.selections || {};
-      const clientPackage = selectedPackage?.split(' ').at(-1) || 'Standard';
+      const {
+        userCount,
+        branchCount,
+        billingCycle,
+        additionalInfo,
+        clientPackage,
+      } = response.data.selections || {};
+
       console.log(selectedPackage?.split(' ')[1]);
       setPost((prev) => ({
         ...prev,
         psUserCount: userCount,
         psBranchCount: branchCount,
+        packageId: clientPackage,
         billingCycle,
         clientPackage,
+        additionalNotes: additionalInfo || '',
       }));
 
       console.log(
@@ -510,11 +495,35 @@ export default function Form() {
       setShowToast(true);
     }
   };
+  const updateSelection = async (data) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
+
+    const payload = {
+      clientPackage: data.packageId?.split(' ').at(-1) || 'Standard',
+      userCount: Number(data.psUserCount) || 0,
+      branchCount: Number(data.psBranchCount) || 0,
+      billingCycle: data.billingCycle || 'MONTHLY',
+      additionalInfo: data.additionalNotes || '',
+    };
+
+    console.log('📦 Sending selection update payload:', payload);
+
+    try {
+      const response = await updateSelectionAPI(payload, token);
+      console.log('✅ Update Selection Response:', response.data);
+    } catch (error) {
+      console.error(
+        '❌ Error updating selection:',
+        error.response?.data || error.message
+      );
+    }
+  };
 
   useEffect(() => {
     getUserData();
     fetchSelections();
-    updateSelection();
   }, []);
 
   return (
@@ -582,7 +591,7 @@ export default function Form() {
                           id="fullname"
                           name="fullname"
                           autocomplete="off"
-                          readOnly={isUserTypeClient}
+                          readOnly={clientType === 'Client'}
                           className="form-control form-control-sm  "
                           value={post.fullname}
                           onChange={handleChange}
@@ -605,7 +614,7 @@ export default function Form() {
                           id="emailAddress"
                           autocomplete="off"
                           name="emailAddress"
-                          readOnly={isUserTypeClient}
+                          readOnly={clientType === 'Client'}
                           className="form-control form-control-sm "
                           value={post.email}
                           onChange={handleChange}
@@ -630,7 +639,7 @@ export default function Form() {
                             inputClass="form-control form-control-sm "
                             value={phone}
                             autocomplete="off"
-                            disabled={isUserTypeClient}
+                            disabled={clientType === 'Client'}
                             onChange={handleContact}
                             inputProps={{
                               id: 'phone',
@@ -638,7 +647,7 @@ export default function Form() {
                             }}
                             inputStyle={{
                               width: '100%',
-                              backgroundColor: inputsDisabled
+                              backgroundColor: isClientOrPending
                                 ? 'white'
                                 : 'white',
                               fontSize: '12px',
@@ -663,7 +672,7 @@ export default function Form() {
                           id="psCompanyName"
                           autocomplete="off"
                           name="organisationName"
-                          readOnly={isUserTypeClient}
+                          readOnly={clientType === 'Client'}
                           className="form-control form-control-sm"
                           value={post.organisationName}
                           onChange={handleChange}
@@ -686,8 +695,8 @@ export default function Form() {
                         <div className="mb-2">
                           <select
                             id="packages"
+                            disabled={clientType === 'Client'}
                             name="packageId"
-                            disabled={isUserTypeClient}
                             className="form-select form-control form-control-sm"
                             value={post.packageId || ''}
                             onChange={handlePackageSelect}
@@ -710,9 +719,10 @@ export default function Form() {
                       <div className="col-md">
                         <select
                           id="billingCycle"
+                          disabled={clientType === 'Client'}
                           name="billingCycle"
                           className="form-select form-control form-control-sm"
-                          style={{ fontSize: '14px' }}
+                          style={{ fontSize: '14px', backgroundColor: 'white' }}
                           value={post.billingCycle}
                           onChange={handleChange}
                         >
@@ -774,6 +784,7 @@ export default function Form() {
                           type="number"
                           id="psBranchCount"
                           name="psBranchCount"
+                          readOnly={clientType === 'Client'}
                           className="form-control form-control-sm"
                           value={post.psBranchCount}
                           onChange={handleChange}
@@ -795,6 +806,7 @@ export default function Form() {
                         </label>
                         <input
                           type="number"
+                          readOnly={clientType === 'Client'}
                           id="psUserCount"
                           name="psUserCount"
                           className="form-control form-control-sm"
@@ -837,6 +849,7 @@ export default function Form() {
                         <textarea
                           id="additionalNotes"
                           name="additionalNotes"
+                          readOnly={clientType === 'Client'}
                           className="form-control form-control-sm"
                           onChange={handleChange}
                           value={post.additionalNotes}
@@ -1204,12 +1217,13 @@ export default function Form() {
                         </div>
                       </div>
 
-                      {!isUserTypeClient && (
+                      {clientType !== 'Client' && (
                         <div className="d-flex justify-content-center">
                           <button
                             type="submit"
                             className="btn text-white custom-btn"
                             onClick={handleButtonClick}
+                            disabled={isLoading}
                             style={{
                               backgroundColor: '#C58C4F',
                               borderColor: '#C58C4F',
