@@ -145,6 +145,16 @@ export default function SignIn() {
             </div>
 
             <Form onSubmit={handleSubmit}>
+              {loading && (
+                <div className="text-center my-3">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#888' }}>
+                    Processing your request...
+                  </p>
+                </div>
+              )}
               <FormGroup className="mb-1">
                 <FormLabel className="text-secondary">Full Name</FormLabel>
                 <FormControl
