@@ -54,12 +54,13 @@ export const getPhamacorePricing = (users, branches) =>
     headers: HEADERS,
   });
 
-export const fetchClientPackages = (id = 123) =>
-  axios.get(`${BASE_URL}/packages/clientpackage/${id}`, {
-    headers: HEADERS,
+
+
+export const updateSelectionAPI = (data, token) =>
+  axios.put(`${BASE_URL}/v1/user/selections`, data, {
+    headers: {
+      ...HEADERS,
+      Authorization: `Bearer ${token}`,
+    },
   });
 
-export const updateSelectionAPI = (data) =>
-  axios.put(`${BASE_URL}/v1/user/selections`, data, {
-    headers: HEADERS,
-  });

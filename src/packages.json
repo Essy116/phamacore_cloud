@@ -1,14 +1,14 @@
 [
     {
-        "packageNum": "1",
+        "packageNum": "Lite",
         "description": "phAMACore Lite"
     },
     {
-        "packageNum": "2",
+        "packageNum": "Standard",
         "description": "phAMACore Standard"
     },
     {
-        "packageNum": "3",
+        "packageNum": "Enterprise",
         "description": "phAMACore Enterprise"
     }
 ]
