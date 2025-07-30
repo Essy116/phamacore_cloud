@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import {
   Form,
   FormGroup,
@@ -19,6 +24,7 @@ import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
   const [formData, setFormData] = useState({ userIdOrEmail: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,8 +32,6 @@ const Login = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('s_token');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -151,6 +155,11 @@ const Login = () => {
       <div className="mx-auto w-100" style={{ maxWidth: '450px' }}>
         <Card className="login-card shadow w-100 h-auto">
           <CardBody className="d-flex flex-column justify-content-between p-4 flex-grow-1">
+            {id && (
+              <div className="alert alert-info text-center mb-3">
+                email verfied successfully. You can now login.
+              </div>
+            )}
             <div className="text-center">
               <img
                 src={cloudlogo}
@@ -165,10 +174,6 @@ const Login = () => {
                 Please enter your credentials to log in.
               </p>
             </div>
-
-            {errors.general && (
-              <p className="text-danger text-center">{errors.general}</p>
-            )}
 
             <Form onSubmit={handleSubmit} className="flex-grow-1">
               <FormGroup className="mb-2">

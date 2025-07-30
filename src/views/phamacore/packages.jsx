@@ -77,7 +77,7 @@ export default function Packages() {
   const handleCardClick2 = (packageItem) => {
     const user = JSON.parse(localStorage.getItem('user'));
 
-    if (user?.userType !== 'User') {
+    if (user?.userType === 'Client' || user?.userType === 'Pending') {
       console.log('⚠️ Not allowed: Only users can select packages');
       return;
     }
