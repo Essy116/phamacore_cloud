@@ -1,36 +1,21 @@
-import axios from "axios";
+// api/auth.js
+import axios from 'axios';
 
-const resetlinkApi = async (email) => {
-  try {
-    const token = localStorage.getItem("token"); 
+const BASE_URL = 'http://20.164.20.36:86/api';
 
-    const response = await axios.post(
-      `http://20.164.20.36:86/api/user/RequestPasswordReset?email=${email}`,
-      {},
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          accesskey:
-            "R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return {
-      success: true,
-      message: response.data.message,
-      token: response.data.additionalData,
-    };
-  } catch (error) {
-    console.error("Request Reset Link Error:", error);
-    return {
-      success: false,
-      message:
-        error.response?.data?.message || "Failed to send reset link. Try again.",
-    };
-  }
+const HEADERS = {
+  Accept: 'text/plain',
+  'Content-Type': 'application/json',
 };
 
-export default resetlinkApi;
+export const resetPasswordRequest = (identifier) =>
+  axios.post(
+    `${BASE_URL}/v1/auth/reset-password-request`,
+    { identifier },
+    {
+      headers: {
+        ...HEADERS,
+        
+      },
+    }
+  );

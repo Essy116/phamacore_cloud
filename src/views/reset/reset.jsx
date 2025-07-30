@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   Form,
@@ -16,9 +16,10 @@ import {
 } from 'react-bootstrap';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
-import resetApi from '../APIS/resetApi';
+import { resetPassword } from '../APIS/resetApi';
 const Reset = () => {
   const navigate = useNavigate();
+  const { token } = useParams();
   const [formData, setFormData] = useState({
     newPassword: '',
     confirmNewPassword: '',
@@ -31,7 +32,7 @@ const Reset = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('s_token');
+  // const token = searchParams.get('s_token');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,39 +41,52 @@ const Reset = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
 
-    if (!formData.newPassword)
-      newErrors.newPassword = 'New Password is required';
-    if (!formData.confirmNewPassword)
-      newErrors.confirmNewPassword = 'Confirm New Password is required';
-    if (formData.newPassword !== formData.confirmNewPassword)
-      newErrors.confirmNewPassword = 'Passwords do not match';
+    const { newPassword, confirmNewPassword } = formData;
+    const errors = {};
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!newPassword) errors.newPassword = 'New Password is required';
+    if (!confirmNewPassword)
+      errors.confirmNewPassword = 'Confirm Password is required';
+    if (newPassword !== confirmNewPassword)
+      errors.confirmNewPassword = 'Passwords do not match';
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
       return;
     }
 
     try {
       setLoading(true);
-      const user = JSON.parse(localStorage.getItem('user'));
-      const role = user?.userType || 'User';
 
-      const response = await resetApi({
+      const payload = {
         token,
         newPassword: formData.newPassword,
         confirmPassword: formData.confirmNewPassword,
-        role,
-      });
+      };
 
-      if (response.success) {
+      console.log('Sending payload:', payload);
+
+      const response = await resetPassword(payload);
+      console.log('API response:', response);
+
+      if (response.status === 200) {
+        console.log('Password reset successful, navigating to login...');
         navigate('/login');
       } else {
-        setToastMessage(response.message);
+        console.error('Reset failed with status:', response.status);
+        setToastMessage(response.data.message || 'Something went wrong.');
         setToastVariant('danger');
         setShowToast(true);
       }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      setToastMessage(
+        error.response?.data?.detail ||
+          'An error occurred while resetting password.'
+      );
+      setToastVariant('danger');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }

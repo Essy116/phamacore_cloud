@@ -15,7 +15,7 @@ import {
   ToastContainer,
 } from 'react-bootstrap';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
-import resetlinkApi from '../APIS/resetlinkApi';
+import { resetPasswordRequest } from '../APIS/resetlinkApi';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 
 const ResetLink = () => {
@@ -43,6 +43,7 @@ const ResetLink = () => {
       setErrors({ email: 'Email is required' });
       return;
     }
+
     if (!email.includes('@')) {
       setErrors({ email: 'Please enter a valid email address' });
       return;
@@ -51,21 +52,32 @@ const ResetLink = () => {
     setLoading(true);
 
     try {
-      const { success, message, token } = await resetlinkApi(email);
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = user?.token;
 
-      if (success && token) {
-        localStorage.setItem('resetauthToken', token);
+      const response = await resetPasswordRequest(email, token);
+
+      const { success, message } = response?.data || {};
+
+      if (success) {
         setToastMessage(message || 'Password reset link sent!');
         setToastVariant('success');
         setShowToast(true);
-        navigate('/reset');
+
+        setTimeout(() => {
+          console.log('Navigating to /reset...');
+          navigate('/reset');
+        }, 1500);
       } else {
         setToastMessage(message || 'Failed to send reset link.');
         setToastVariant('danger');
         setShowToast(true);
       }
     } catch (error) {
-      setToastMessage('Something went wrong. Try again.');
+      console.error('Reset link error:', error);
+      setToastMessage(
+        error.response?.data?.message || 'Something went wrong. Try again.'
+      );
       setToastVariant('danger');
       setShowToast(true);
     } finally {
@@ -89,7 +101,7 @@ const ResetLink = () => {
             <div className="text-center mb-2">
               <h5 className="mb-1">Forgot Password</h5>
               <p className="mb-0 text-secondary" style={{ fontSize: '10px' }}>
-                Please enter your email to receive your new password
+                Please enter your email to reset your password
               </p>
             </div>
 

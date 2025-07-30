@@ -1,34 +1,17 @@
+// api/auth.js
 import axios from 'axios';
 
-const resetApi = async ({ token, newPassword, confirmPassword, role }) => {
-  try {
-    const response = await axios.post(
-      'http://20.164.20.36:86/api/auth/ResetPassword',
-      {
-        token,
-        newPassword,
-        confirmPassword,
-        role,
-      },
-      {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          accessKey:
-            'R0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9',
-        },
-      }
-    );
+const BASE_URL = 'http://20.164.20.36:86/api';
 
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error('Reset API Error:', error);
-    return {
-      success: false,
-      message:
-        error.response?.data?.message || 'Something went wrong. Try again.',
-    };
-  }
+const HEADERS = {
+  Accept: 'text/plain',
+  'Content-Type': 'application/json',
 };
 
-export default resetApi;
+
+export const resetPassword = (data) =>
+  axios.patch(`${BASE_URL}/v1/auth/reset-password`, data, {
+    headers: HEADERS,
+  });
+
+
