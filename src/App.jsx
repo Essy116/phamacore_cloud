@@ -14,19 +14,24 @@ const router = createBrowserRouter([
     element: <Packages />,
   },
   {
-    path: '/login',
-    element: <Login />,
-  },
-  {
     path: 'signin',
     element: <SignIn />,
   },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+
   {
     path: 'resetlink',
     element: <ResetLink />,
   },
   {
-    path: 'reset',
+    path: 'verify-email/:id',
+    element: <Login />,
+  },
+  {
+    path: 'reset-password/:token',
     element: <Reset />,
   },
   {
