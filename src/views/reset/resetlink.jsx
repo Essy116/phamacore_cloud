@@ -52,22 +52,17 @@ const ResetLink = () => {
     setLoading(true);
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const token = user?.token;
-
-      const response = await resetPasswordRequest(email, token);
+      const response = await resetPasswordRequest(email);
 
       const { success, message } = response?.data || {};
 
       if (success) {
-        setToastMessage(message || 'Password reset link sent!');
+        setToastMessage(
+          'Please check your inbox for the reset link to continue the password reset process.'
+        );
+        setEmail('');
         setToastVariant('success');
         setShowToast(true);
-
-        setTimeout(() => {
-          console.log('Navigating to /reset...');
-          navigate('/reset');
-        }, 1500);
       } else {
         setToastMessage(message || 'Failed to send reset link.');
         setToastVariant('danger');
@@ -89,6 +84,17 @@ const ResetLink = () => {
     <div className="container-fluid min-vh-100 d-flex align-items-center">
       <div className="mx-auto w-100" style={{ maxWidth: '450px' }}>
         <Card className="login-card shadow w-100 h-auto">
+          <Toast
+            show={showToast}
+            onClose={() => setShowToast(false)}
+            bg={toastVariant}
+            delay={6000}
+            autohide
+            className="position-absolute top-0 start-10 translate-middle-x mt-3"
+          >
+            <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+          </Toast>
+
           <CardBody className="d-flex flex-column justify-content-between p-4 flex-grow-1">
             <div className="text-center">
               <img
@@ -104,11 +110,6 @@ const ResetLink = () => {
                 Please enter your email to reset your password
               </p>
             </div>
-
-            {errors.general && (
-              <p className="text-danger text-center">{errors.general}</p>
-            )}
-            {message && <p className="text-success text-center">{message}</p>}
 
             <Form onSubmit={handleSubmit} autoComplete="off">
               <FormGroup className="mb-2 position-relative">
@@ -130,7 +131,7 @@ const ResetLink = () => {
                   <Col xs={6} className="d-flex justify-content-center">
                     <Button
                       type="submit"
-                      className="auth auth-btn btn-sm w-100"
+                      className="auth auth-btn btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
                       style={{
                         backgroundColor: '#228B22',
                         borderColor: '#228B22',
@@ -140,9 +141,17 @@ const ResetLink = () => {
                       }}
                       disabled={loading}
                     >
+                      {loading && (
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      )}
                       {loading ? 'Processing...' : 'Reset'}
                     </Button>
                   </Col>
+
                   <Col xs={6} className="d-flex justify-content-center">
                     <Button
                       type="button"
@@ -161,17 +170,6 @@ const ResetLink = () => {
                   </Col>
                 </Row>
               </div>
-              <ToastContainer position="top-end" className="p-3">
-                <Toast
-                  onClose={() => setShowToast(false)}
-                  show={showToast}
-                  delay={3000}
-                  autohide
-                  bg={toastVariant}
-                >
-                  <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-                </Toast>
-              </ToastContainer>
             </Form>
           </CardBody>
         </Card>
