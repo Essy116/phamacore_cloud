@@ -3,6 +3,7 @@ import axios from 'axios';
 const registerUser = async (formData) => {
   const errors = {};
 
+  // 🔍 Basic client-side validation
   if (!formData.fullName) errors.fullName = 'Required';
   if (!formData.email) errors.email = 'Required';
   if (!formData.phone) errors.phone = 'Required';
@@ -14,22 +15,23 @@ const registerUser = async (formData) => {
     errors.confirmPassword = 'Passwords do not match';
   }
 
+  // ⛔ Return early if validation errors
   if (Object.keys(errors).length > 0) {
     return { success: false, errors };
   }
 
-  let phone = formData.phone.split('');
-  phone.splice(0, 3, '0');
+  // ☎️ Format phone number to start with '0'
+  const phone = formData.phone.split('');
+  phone.splice(0, 3, '0'); // Replace country code with '0'
 
   const requestData = {
-    
     fullName: formData.fullName,
     email: formData.email,
     phoneNumber: phone.join(''),
     organisationName: formData.organisationName,
     role: formData.role,
     password: formData.password,
-   ConfirmPassword: formData.confirmPassword,
+    confirmPassword: formData.confirmPassword,
   };
 
   try {
@@ -48,10 +50,17 @@ const registerUser = async (formData) => {
 
     return { success: true, data: response.data };
   } catch (error) {
+    const apiErrors = error?.response?.data?.errors || null;
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      error.message ||
+      'An error occurred. Please try again.';
+
     return {
       success: false,
-      message:
-        error.response?.data?.message || 'An error occurred. Please try again.',
+      message,
+      errors: apiErrors,
     };
   }
 };
