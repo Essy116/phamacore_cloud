@@ -7,7 +7,7 @@ import Login from './views/auth/login';
 import Reset from './views/reset/reset';
 import ResetLink from './views/reset/resetlink';
 import SignIn from './views/auth/signin';
-
+import Verify from './views/auth/verify';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -27,8 +27,8 @@ const router = createBrowserRouter([
     element: <ResetLink />,
   },
   {
-    path: 'verify-email/:id',
-    element: <Login />,
+    path: 'verify-email/:token',
+    element: <Verify />,
   },
   {
     path: 'reset-password/:token',

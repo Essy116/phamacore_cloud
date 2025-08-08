@@ -24,7 +24,7 @@ import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams();
+
   const [formData, setFormData] = useState({ userIdOrEmail: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -155,11 +155,18 @@ const Login = () => {
       <div className="mx-auto w-100" style={{ maxWidth: '450px' }}>
         <Card className="login-card shadow w-100 h-auto">
           <CardBody className="d-flex flex-column justify-content-between p-4 flex-grow-1">
-            {id && (
-              <div className="alert alert-info text-center mb-3">
-                email verfied successfully. You can now login.
-              </div>
-            )}
+            <Toast
+              show={showToast}
+              onClose={() => setShowToast(false)}
+              bg="warning"
+              delay={4000}
+              autohide
+              className="position-absolute top-0 start-50 translate-middle-x mt-3"
+            >
+              <Toast.Body className="text-white">
+                ⚠️ Please verify your email before logging in.
+              </Toast.Body>
+            </Toast>
             <div className="text-center">
               <img
                 src={cloudlogo}

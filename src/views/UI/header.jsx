@@ -67,7 +67,7 @@ export default function Header() {
     setShowToast(true);
     setTimeout(() => {
       setToastMessage('Logout successful. Redirecting...');
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
       localStorage.clear();
       sessionStorage.clear();
       window.location.reload();

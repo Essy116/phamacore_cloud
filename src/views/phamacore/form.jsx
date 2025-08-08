@@ -21,9 +21,16 @@ export default function Form() {
   const formRef = useRef(null);
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const isClientOrPending =
+    user?.userType === 'Client' || user?.userType === 'Pending';
+
   const [selectedPackage, setSelectedPackage] = useState(
-    JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
-      'phAMACore Standard'
+    !isClientOrPending
+      ? JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
+          'phAMACore Standard'
+      : ''
   );
 
   const [phone, setPhone] = useState('');
@@ -37,10 +44,6 @@ export default function Form() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  const isClientOrPending =
-    user?.userType === 'Client' || user?.userType === 'Pending';
 
   const [packageDetails, setPackageDetails] = useState({
     trainingDaysMin: 0,
@@ -51,7 +54,8 @@ export default function Form() {
   const [post, setPost] = useState({
     psUserCount: '',
     psBranchCount: '',
-    packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
+    packageId:
+      JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
     additionalNotes: '',
     billingCycle: '',
     phone: '',
@@ -329,7 +333,8 @@ export default function Form() {
       setPost({
         psUserCount: '',
         psBranchCount: '',
-        packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
+        packageId:
+          JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
         additionalNotes: '',
       });
 
@@ -396,6 +401,8 @@ export default function Form() {
     }
   };
   function capitalize(str) {
+    // ;
+    if (!isClientOrPending) return `Phamacore ${str}`;
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
@@ -427,6 +434,10 @@ export default function Form() {
         userId,
         roleId,
         clientPackage,
+        userCount,
+        branchCount,
+        billingCycle,
+        additionalInfo,
       } = response.data;
 
       const phoneNo = phone?.startsWith('0') ? '254' + phone.slice(1) : phone;
@@ -439,13 +450,17 @@ export default function Form() {
         phone: phoneNo || '',
         userId: userId || '',
         roleId: roleId || '',
-        packageId: clientPackage || 'Lite',
+        psUserCount: userCount,
+        psBranchCount: branchCount,
+        packageId: clientPackage,
+        billingCycle,
+        additionalNotes: additionalInfo || '',
       }));
       setClientType(userType);
       setPhone(phoneNo);
-      console.log('User data fetched successfully:', response.data);
+      setSelectedPackage(clientPackage || 'Standard');
+      // console.log('clientPackage', clientPackage);
     } catch (error) {
-      console.error('Error fetching user data:', error);
       const msg =
         error.response?.data?.detail ||
         'Failed to fetch user data. Please log in again.';
@@ -458,7 +473,10 @@ export default function Form() {
   const fetchSelections = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
-    if (!token) return;
+    const isClientOrPending =
+      user?.userType === 'Client' || user?.userType === 'Pending';
+
+    if (!token || !isClientOrPending) return;
 
     try {
       const response = await getSelections(token);
@@ -470,7 +488,6 @@ export default function Form() {
         clientPackage,
       } = response.data.selections || {};
 
-      console.log(selectedPackage?.split(' ')[1]);
       setPost((prev) => ({
         ...prev,
         psUserCount: userCount,
@@ -480,13 +497,7 @@ export default function Form() {
         clientPackage,
         additionalNotes: additionalInfo || '',
       }));
-
-      console.log(
-        '✅ Selections fetched successfully:',
-        response?.data?.selections
-      );
     } catch (error) {
-      console.error('❌ Error fetching selections:', error);
       const msg =
         error.response?.data?.detail ||
         'Failed to fetch selections. Please try again.';
@@ -495,6 +506,7 @@ export default function Form() {
       setShowToast(true);
     }
   };
+
   const updateSelection = async (data) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
@@ -507,8 +519,6 @@ export default function Form() {
       billingCycle: data.billingCycle || 'MONTHLY',
       additionalInfo: data.additionalNotes || '',
     };
-
-    console.log('📦 Sending selection update payload:', payload);
 
     try {
       const response = await updateSelectionAPI(payload, token);

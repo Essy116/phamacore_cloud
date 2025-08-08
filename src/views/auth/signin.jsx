@@ -52,37 +52,73 @@ export default function SignIn() {
   const handleContact = (value) => {
     setFormData({ ...formData, phone: value });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormErrors({});
     setLoading(true);
 
-    const result = await registerUser(formData);
+    try {
+      const result = await registerUser(formData);
+      setLoading(false);
 
-    setLoading(false);
+      // ❌ Validation or API errors
+      if (!result.success) {
+        if (result.errors) {
+          setFormErrors(result.errors);
 
-    if (!result.success) {
-      if (result.errors) {
-        setFormErrors(result.errors);
-      } else {
-        setToastMessage(result.message);
+          // Show first validation message in toast
+          const firstErrorKey = Object.keys(result.errors)[0];
+          const errorValue = result.errors[firstErrorKey];
+          const firstErrorMessage = Array.isArray(errorValue)
+            ? errorValue[0]
+            : errorValue;
+
+          setToastMessage(firstErrorMessage);
+          setToastVariant('danger');
+          setShowToast(true);
+          return;
+        }
+
+        // General API error (no field-specific errors)
+        setToastMessage(result.message || 'Registration failed.');
         setToastVariant('danger');
         setShowToast(true);
+        return;
       }
-      return;
+
+      // ✅ Registration successful
+      const storedPackage = JSON.parse(localStorage.getItem('packages')) || {};
+      const selectedPackage = storedPackage.selectedPackage || '';
+      console.log('Stored Selected Package:', selectedPackage);
+
+      // Show toast with delay before navigation
+      setToastMessage(
+        'Registration successful! A verification email has been sent. Please check your inbox.'
+      );
+      setToastVariant('success');
+
+      // Delay showing toast
+      setTimeout(() => {
+        setShowToast(true);
+
+        // After toast shows, wait 3 seconds then navigate
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }, 1500);
+    } catch (error) {
+      setLoading(false);
+
+      const message =
+        error?.response?.data?.title ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'An unexpected error occurred.';
+
+      setToastMessage(message);
+      setToastVariant('danger');
+      setShowToast(true);
     }
-
-    const storedPackage = JSON.parse(localStorage.getItem('packages')) || {};
-    const selectedPackage = storedPackage.selectedPackage || '';
-
-    console.log('Stored Selected Package:', selectedPackage);
-
-    setToastMessage('Registration successful! Redirecting to login...');
-    setToastVariant('success');
-    setShowToast(true);
-
-    navigate('/login');
   };
 
   const handleNextClick = () => {
@@ -121,6 +157,17 @@ export default function SignIn() {
           className="login-card shadow h-100 py-2"
           style={{ width: '450px' }}
         >
+          <ToastContainer position="center" className="p-3">
+            <Toast
+              onClose={() => setShowToast(false)}
+              show={showToast}
+              delay={3000}
+              autohide
+              bg={toastVariant}
+            >
+              <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+            </Toast>
+          </ToastContainer>
           <CardBody className="px-3 d-flex flex-column justify-content-between m-auto">
             <div className="text-center">
               <img
@@ -335,19 +382,6 @@ export default function SignIn() {
               >
                 Sign up
               </Button>
-
-              {/* Toast Notification */}
-              <ToastContainer position="top-end" className="p-3">
-                <Toast
-                  onClose={() => setShowToast(false)}
-                  show={showToast}
-                  delay={3000}
-                  autohide
-                  bg={toastVariant}
-                >
-                  <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-                </Toast>
-              </ToastContainer>
             </Form>
           </CardBody>
         </Card>
