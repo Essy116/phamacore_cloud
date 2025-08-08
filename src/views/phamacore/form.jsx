@@ -6,7 +6,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import packagesList from '../../packages.json';
+
 import {
   getCurrentUser,
   createClient,
@@ -21,16 +21,9 @@ export default function Form() {
   const formRef = useRef(null);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  const isClientOrPending =
-    user?.userType === 'Client' || user?.userType === 'Pending';
-
   const [selectedPackage, setSelectedPackage] = useState(
-    !isClientOrPending
-      ? JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
-          'phAMACore Standard'
-      : ''
+    JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
+      'phAMACore Standard'
   );
 
   const [phone, setPhone] = useState('');
@@ -44,6 +37,10 @@ export default function Form() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const isClientOrPending =
+    user?.userType === 'Client' || user?.userType === 'Pending';
 
   const [packageDetails, setPackageDetails] = useState({
     trainingDaysMin: 0,
@@ -54,8 +51,7 @@ export default function Form() {
   const [post, setPost] = useState({
     psUserCount: '',
     psBranchCount: '',
-    packageId:
-      JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
+    packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
     additionalNotes: '',
     billingCycle: '',
     phone: '',
@@ -97,128 +93,22 @@ export default function Form() {
         });
     }
   }, [post.psUserCount, post.psBranchCount, selectedPackage]);
-  useEffect(() => {
-    updatePackageDetails(selectedPackage);
-  }, [selectedPackage]);
+
   const handleSelect = (pkg) => {
     setSelectedPackage(pkg);
   };
-  const updatePackageDetails = (packageId) => {
-    const packageInfo = {
-      'phAMACore Lite': {
-        trainingDaysMin: 6,
-        trainingDaysMax: 8,
-        characteristics: [
-          'Feature 1',
-          'Feature 2',
-          'Feature 3',
-          'Feature 4',
-          'Feature 5',
-          'Feature 6',
-        ],
-      },
-      'phAMACore Standard': {
-        trainingDaysMin: 8,
-        trainingDaysMax: 10,
-        characteristics: [
-          'Lite plus',
-          'Feature 2',
-          'Feature 3',
-          'Feature 4',
-          'Feature 5',
-          'Feature 6',
-        ],
-      },
-      'phAMACore Enterprise': {
-        trainingDaysMin: 8,
-        trainingDaysMax: 10,
-        characteristics: [
-          'Standard plus',
-          'Feature 2',
-          'Feature 3',
-          'Feature 4',
-          'Feature 5',
-          'Feature 6',
-        ],
-      },
-    };
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('packages'));
 
-    const details = packageInfo[packageId] || {
-      trainingDaysMin: 0,
-      trainingDaysMax: 0,
-      characteristics: [],
-    };
-
-    setPackageDetails(details);
-
-    setPost((prevPost) => ({
-      ...prevPost,
-      trainingDays: details.trainingDaysMax || '',
-    }));
-
-    const updatePackageDetails = (packageId) => {
-      const packageInfo = {
-        'phAMACore Lite': {
-          trainingDaysMin: 6,
-          trainingDaysMax: 8,
-          characteristics: [
-            'Feature 1',
-            'Feature 2',
-            'Feature 3',
-            'Feature 4',
-            'Feature 5',
-            'Feature 6',
-          ],
-        },
-        'phAMACore Standard': {
-          trainingDaysMin: 8,
-          trainingDaysMax: 10,
-          characteristics: [
-            'Lite plus',
-            'Feature 2',
-            'Feature 3',
-            'Feature 4',
-            'Feature 5',
-            'Feature 6',
-          ],
-        },
-        'phAMACore Enterprise': {
-          trainingDaysMin: 8,
-          trainingDaysMax: 10,
-          characteristics: [
-            'Standard plus',
-            'Feature 2',
-            'Feature 3',
-            'Feature 4',
-            'Feature 5',
-            'Feature 6',
-          ],
-        },
-      };
-
-      const details = packageInfo[packageId] || {
-        trainingDaysMin: 0,
-        trainingDaysMax: 0,
-        characteristics: [],
-      };
-
-      setPackageDetails(details);
-
-      setPost((prevPost) => ({
-        ...prevPost,
-        trainingDays: details.trainingDaysMax || '',
+    if (saved) {
+      setSelectedPackage(saved.selectedPackage || 'phAMACore Standard');
+      setPost((prev) => ({
+        ...prev,
+        packageId: saved.selectedPackageId || '',
       }));
-      const packageKey = pkg.split(' ')[1];
-      let filteredDataObj = {};
-
-      for (let [key, value] of Object.entries(data)) {
-        if (key.toLowerCase().includes(packageKey.toLowerCase())) {
-          filteredDataObj[key] = value;
-        }
-      }
-      setData(filteredDataObj);
-    };
-  };
+      setPackageList(saved.packageList || []);
+    }
+  }, []);
 
   const handleContact = (value) => {
     setPhone(value);
@@ -333,8 +223,7 @@ export default function Form() {
       setPost({
         psUserCount: '',
         psBranchCount: '',
-        packageId:
-          JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
+        packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
         additionalNotes: '',
       });
 
@@ -434,13 +323,15 @@ export default function Form() {
         userId,
         roleId,
         clientPackage,
-        userCount,
-        branchCount,
-        billingCycle,
-        additionalInfo,
       } = response.data;
 
       const phoneNo = phone?.startsWith('0') ? '254' + phone.slice(1) : phone;
+
+      const savedPackage = JSON.parse(localStorage.getItem('packages'));
+      const selectedPackageName =
+        savedPackage?.selectedPackage || clientPackage || 'phAMACore Standard';
+      const selectedPackageId =
+        savedPackage?.selectedPackageId || packageId || '';
 
       setPost((prev) => ({
         ...prev,
@@ -450,17 +341,13 @@ export default function Form() {
         phone: phoneNo || '',
         userId: userId || '',
         roleId: roleId || '',
-        psUserCount: userCount,
-        psBranchCount: branchCount,
-        packageId: clientPackage,
-        billingCycle,
-        additionalNotes: additionalInfo || '',
+        packageId: clientPackage || 'Lite',
       }));
       setClientType(userType);
       setPhone(phoneNo);
-      setSelectedPackage(clientPackage || 'Standard');
-      // console.log('clientPackage', clientPackage);
+      console.log('User data fetched successfully:', response.data);
     } catch (error) {
+      console.error('Error fetching user data:', error);
       const msg =
         error.response?.data?.detail ||
         'Failed to fetch user data. Please log in again.';
@@ -473,10 +360,7 @@ export default function Form() {
   const fetchSelections = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
-    const isClientOrPending =
-      user?.userType === 'Client' || user?.userType === 'Pending';
-
-    if (!token || !isClientOrPending) return;
+    if (!token) return;
 
     try {
       const response = await getSelections(token);
@@ -488,6 +372,7 @@ export default function Form() {
         clientPackage,
       } = response.data.selections || {};
 
+      console.log(selectedPackage?.split(' ')[1]);
       setPost((prev) => ({
         ...prev,
         psUserCount: userCount,
@@ -497,7 +382,13 @@ export default function Form() {
         clientPackage,
         additionalNotes: additionalInfo || '',
       }));
+
+      console.log(
+        '✅ Selections fetched successfully:',
+        response?.data?.selections
+      );
     } catch (error) {
+      console.error('❌ Error fetching selections:', error);
       const msg =
         error.response?.data?.detail ||
         'Failed to fetch selections. Please try again.';
@@ -506,7 +397,6 @@ export default function Form() {
       setShowToast(true);
     }
   };
-
   const updateSelection = async (data) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
@@ -520,6 +410,8 @@ export default function Form() {
       additionalInfo: data.additionalNotes || '',
     };
 
+    console.log('📦 Sending selection update payload:', payload);
+
     try {
       const response = await updateSelectionAPI(payload, token);
       console.log('✅ Update Selection Response:', response.data);
@@ -528,6 +420,103 @@ export default function Form() {
         '❌ Error updating selection:',
         error.response?.data || error.message
       );
+    }
+  };
+
+  const handleErrors = (values) => {
+    const errors = {};
+
+    if (!values.organisationName) {
+      errors.organisationName = 'Required';
+    }
+    if (!values.psUserCount) {
+      errors.psUserCount = 'Required';
+    }
+
+    if (!values.phone) {
+      errors.phone = 'Required';
+    }
+
+    if (!values.email) {
+      errors.email = 'Required';
+    }
+
+    if (!values.packageId) {
+      errors.packageId = 'Required';
+    }
+    if (!values.psBranchCount) {
+      errors.psBranchCount = 'Required';
+    }
+    if (!values.fullname) {
+      errors.fullname = 'Required';
+    }
+
+    setFormErrors(errors);
+    console.log(errors);
+    return Object.keys(errors).length > 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (handleErrors(post)) {
+      return;
+    }
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
+
+    setIsLoading(true);
+
+    const payload = {
+      psUserCount: Number(post.psUserCount) || 0,
+      psBranchCount: Number(post.psBranchCount) || 0,
+      packageId: Number(post.packageId) || 2,
+      additionalNotes: post.additionalNotes || '',
+    };
+
+    try {
+      const response = await createClient(payload, token);
+
+      const data = response.data;
+
+      console.log('API Response:', data);
+
+      setPhone('');
+      setPost({
+        psUserCount: '',
+        psBranchCount: '',
+        packageId:
+          JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
+        additionalNotes: '',
+      });
+
+      setToastMessage(data.message || 'Form submitted successfully!');
+      setToastVariant('success');
+      setShowToast(true);
+
+      navigate('/summary', {
+        state: {
+          data,
+          formData: post,
+          initialPackage: selectedPackage,
+          summary: data,
+          trainingDaysMax: packageDetails.trainingDaysMax,
+        },
+      });
+
+      setTimeout(() => navigate('/login'), 3000);
+    } catch (err) {
+      console.error('API Error:', err);
+
+      setToastMessage(
+        err.response?.data?.message ||
+          'There was an error submitting the form. Please try again.'
+      );
+      setToastVariant('danger');
+      setShowToast(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -576,16 +565,6 @@ export default function Form() {
                   >
                     Biodata{' '}
                   </h5>
-                  {/* {isLoading && (
-                    <div className="loading-overlay">
-                      <div
-                        className="spinner-border text-primary"
-                        role="status"
-                      >
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    </div>
-                  )} */}
                   <form
                     ref={formRef}
                     onSubmit={handleSubmit}
@@ -702,30 +681,26 @@ export default function Form() {
                     </h5>
                     <div className="row">
                       <div className="col-md">
-                        <div className="mb-2">
-                          <select
-                            id="packages"
-                            disabled={clientType === 'Client'}
-                            name="packageId"
-                            className="form-select form-control form-control-sm"
-                            value={post.packageId || ''}
-                            onChange={handlePackageSelect}
-                            style={{
-                              fontSize: '14px',
-                              backgroundColor: 'white',
-                            }}
-                          >
-                            {packagesList.map((pkg) => (
-                              <option
-                                key={pkg.packageNum}
-                                value={pkg.packageNum}
-                              >
-                                {pkg.description}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        <select
+                          id="packages"
+                          disabled={clientType === 'Client'}
+                          name="packageId"
+                          className="form-select form-control form-control-sm"
+                          value={post.packageId || ''}
+                          onChange={handlePackageSelect}
+                          style={{
+                            fontSize: '14px',
+                            backgroundColor: 'white',
+                          }}
+                        >
+                          {packageList.map((pkg) => (
+                            <option key={pkg.packageId} value={pkg.packageId}>
+                              {pkg.packageName}
+                            </option>
+                          ))}
+                        </select>
                       </div>
+
                       <div className="col-md">
                         <select
                           id="billingCycle"
@@ -747,44 +722,7 @@ export default function Form() {
                         )}
                       </div>
                     </div>
-                    {/* <div className="dropdown mb-2 text-left">
-                      <button
-                        className="btn bg-white border border-2 dropdown-toggle w-80 dropdown-button text-start"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        aria-label="Select a package"
-                      >
-                        {selectedPackage}
-                      </button>
-                      
-                      <ul
-                        className="dropdown-menu text-start"
-                        aria-labelledby="dropdownMenuButton"
-                      >
-                        {[
-                          { packageNum: "1", description: "phAMACore Lite" },
-                          {
-                            packageNum: "2",
-                            description: "phAMACore Standard",
-                          },
-                          {
-                            packageNum: "3",
-                            description: "phAMACore Enterprise",
-                          },
-                        ].map((pkg) => (
-                          <li
-                            key={pkg.packageNum}
-                            className="dropdown-item"
-                            // onClick={() => setSelectedPackage(pkg)}
-                            onClick={() => handlePackageSelect(pkg)}
-                          >
-                            {pkg.description}
-                          </li>
-                        ))}
-                      </ul>
-                    </div> */}
+
                     <div className="row mb-2">
                       <div className="col-md-4 pe-0">
                         <label htmlFor="psBranchCount" className="form-label">
