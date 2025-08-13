@@ -14,76 +14,74 @@ export default function Packages() {
 
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
-
+  const userType = user?.userType || user?.roleId || 'Unknown';
   const packageTrainingDays = {
     'phAMACore Lite': '6 to 8',
     'phAMACore Standard': '8 to 10',
     'phAMACore Enterprise': '8 to 10',
   };
 
- const fetchPackages = async () => {
-  try {
-    const data = await getAllPackages();
-    const activePackages = data.filter((pkg) => pkg.isActive);
+  const maxTrainingDays = Object.fromEntries(
+    Object.entries(packageTrainingDays).map(([pkg, range]) => {
+      const max = range.split('to').pop().trim();
+      return [pkg, Number(max)];
+    })
+  );
 
-    setPackages(activePackages);
+  localStorage.setItem('maxTrainingDays', JSON.stringify(maxTrainingDays));
 
-    // ✅ Save full list to localStorage
+  const fetchPackages = async () => {
+    try {
+      const packages = await getAllPackages();
+      setPackages(packages);
+    } catch (error) {
+      setToastMessage(error);
+      setToastVariant('danger');
+      setShowToast(true);
+    }
+  };
+
+  const handleCardClick = (pkg) => {
+    if (userType === 'Client' || userType === 'Pending') {
+      return;
+    }
+
+    if (selectedPackage === pkg.packageName) return;
+
+    setSelectedPackage(pkg.packageName);
+    setPackageCode(pkg.packageId);
+
     const stored = JSON.parse(localStorage.getItem('packages')) || {};
     localStorage.setItem(
       'packages',
       JSON.stringify({
         ...stored,
-        packageList: activePackages,
+        selectedPackage: pkg.packageName,
+        selectedPackageId: pkg.packageId,
       })
     );
-  } catch (errorMessage) {
-    setToastMessage(errorMessage);
-    setToastVariant('danger');
-    setShowToast(true);
-  }
-};
+  };
 
-const handleCardClick = (pkg) => {
-  if (user?.userType === 'Client' || user?.userType === 'Pending') return;
+  useEffect(() => {
+    const storedPackages = JSON.parse(localStorage.getItem('packages'));
+    if (storedPackages?.selectedPackageId) {
+      const pkg = packages.find(
+        (p) => p.packageId === storedPackages.selectedPackageId
+      );
+      if (pkg) {
+        setSelectedPackage(pkg.packageName);
+        setPackageCode(pkg.packageId);
+      }
+    }
+  }, [packages]);
 
-  if (selectedPackage === pkg.packageName) return;
-
-  setSelectedPackage(pkg.packageName);
-  setPackageCode(pkg.packageId);
-
-  const stored = JSON.parse(localStorage.getItem('packages')) || {};
-
-  localStorage.setItem(
-    'packages',
-    JSON.stringify({
-      ...stored,
-      selectedPackage: pkg.packageName,
-      selectedPackageId: pkg.packageId,
-      packageList: stored.packageList || packages, // ✅ ensure it's kept or restored
-    })
-  );
-};
-
-
-
-
- useEffect(() => {
-  fetchPackages();
-
-  const stored = JSON.parse(localStorage.getItem('packages'));
-  if (stored?.selectedPackage && stored?.selectedPackageId) {
-    setSelectedPackage(stored.selectedPackage);
-    setPackageCode(stored.selectedPackageId);
-  }
-}, []);
-
-
-const cardStyle = (pkgName) => ({
-  border: selectedPackage === pkgName ? '5px solid #C58C4F' : 'none',
-  transform: selectedPackage === pkgName ? 'scale(1.05)' : 'none',
-});
-
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+  const cardStyle = (pkgName) => ({
+    border: selectedPackage === pkgName ? '5px solid #C58C4F' : 'none',
+    transform: selectedPackage === pkgName ? 'scale(1.05)' : 'none',
+  });
 
   const radioButtonStyle = {
     color: '#C58C4F',
@@ -146,6 +144,7 @@ const cardStyle = (pkgName) => ({
     position: 'relative',
     zIndex: 1,
     paddingTop: '2rem',
+    paddingBottom: '20px',
   };
 
   return (
@@ -156,7 +155,12 @@ const cardStyle = (pkgName) => ({
         <h4
           className="d-flex justify-content-center align-items-center"
           style={{
-            padding: '80px 0 30px 0',
+            padding:
+              userType === 'Client' ||
+              userType === 'User' ||
+              userType === 'Pending'
+                ? '10px 0 30px 0'
+                : '110px 0 30px 0',
             fontWeight: '600',
             lineHeight: '20px',
             color: '#c58c4f',
@@ -180,15 +184,16 @@ const cardStyle = (pkgName) => ({
                 <div className="card-text-top shadow d-flex justify-content-center align-items-center">
                   <h5 className="mb-0">{pkg.packageName}</h5>
                   <input
-  type="radio"
-  name="package"
-  style={{
-    ...radioButtonStyle,
-    ...(selectedPackage === pkg.packageName ? radioButtonCheckedStyle : {}),
-  }}
-  checked={selectedPackage === pkg.packageName}
-/>
-
+                    type="radio"
+                    name="package"
+                    style={{
+                      ...radioButtonStyle,
+                      ...(selectedPackage === pkg.packageName
+                        ? radioButtonCheckedStyle
+                        : {}),
+                    }}
+                    checked={selectedPackage === pkg.packageName}
+                  />
                 </div>
                 <div className="card-body d-flex flex-column">
                   <p style={{ fontSize: '14px', textAlign: 'center' }}>
@@ -210,6 +215,24 @@ const cardStyle = (pkgName) => ({
           ))}
         </div>
 
+        {userType !== 'Client' &&
+          userType !== 'User' &&
+          userType !== 'Pending' && (
+            <div className="d-flex justify-content-end">
+              <button
+                className="btn btn-sm my-5"
+                onClick={() => navigate('/login')}
+                style={{
+                  backgroundColor: '#C58C4F',
+                  borderColor: '#C58C4F',
+                  color: '#FFF',
+                  width: '20%',
+                }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         <ToastContainer position="top-center" className="p-3">
           <Toast
             bg={toastVariant}
@@ -221,23 +244,6 @@ const cardStyle = (pkgName) => ({
             <Toast.Body className="text-white">{toastMessage}</Toast.Body>
           </Toast>
         </ToastContainer>
-
-        {user?.userType !== 'Client' && user?.userType !== 'Pending' && (
-          <div className="d-flex justify-content-end">
-            <button
-              className="btn btn-sm my-5"
-              onClick={() => navigate('/login')}
-              style={{
-                backgroundColor: '#C58C4F',
-                borderColor: '#C58C4F',
-                color: '#FFF',
-                width: '20%',
-              }}
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
     </>
   );
