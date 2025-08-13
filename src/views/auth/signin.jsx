@@ -61,12 +61,10 @@ export default function SignIn() {
       const result = await registerUser(formData);
       setLoading(false);
 
-      // ❌ Validation or API errors
       if (!result.success) {
         if (result.errors) {
           setFormErrors(result.errors);
 
-          // Show first validation message in toast
           const firstErrorKey = Object.keys(result.errors)[0];
           const errorValue = result.errors[firstErrorKey];
           const firstErrorMessage = Array.isArray(errorValue)
@@ -79,29 +77,24 @@ export default function SignIn() {
           return;
         }
 
-        // General API error (no field-specific errors)
         setToastMessage(result.message || 'Registration failed.');
         setToastVariant('danger');
         setShowToast(true);
         return;
       }
 
-      // ✅ Registration successful
       const storedPackage = JSON.parse(localStorage.getItem('packages')) || {};
       const selectedPackage = storedPackage.selectedPackage || '';
       console.log('Stored Selected Package:', selectedPackage);
 
-      // Show toast with delay before navigation
       setToastMessage(
         'Registration successful! A verification email has been sent. Please check your inbox.'
       );
       setToastVariant('success');
 
-      // Delay showing toast
       setTimeout(() => {
         setShowToast(true);
 
-        // After toast shows, wait 3 seconds then navigate
         setTimeout(() => {
           navigate('/login');
         }, 3000);
@@ -161,7 +154,7 @@ export default function SignIn() {
             <Toast
               onClose={() => setShowToast(false)}
               show={showToast}
-              delay={3000}
+              delay={8000}
               autohide
               bg={toastVariant}
             >

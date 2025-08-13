@@ -3,7 +3,7 @@ import axios from 'axios';
 const registerUser = async (formData) => {
   const errors = {};
 
-  // 🔍 Basic client-side validation
+ 
   if (!formData.fullName) errors.fullName = 'Required';
   if (!formData.email) errors.email = 'Required';
   if (!formData.phone) errors.phone = 'Required';
@@ -15,15 +15,14 @@ const registerUser = async (formData) => {
     errors.confirmPassword = 'Passwords do not match';
   }
 
-  // ⛔ Return early if validation errors
+
   if (Object.keys(errors).length > 0) {
     return { success: false, errors };
   }
 
-  // ☎️ Format phone number to start with '0'
-  const phone = formData.phone.split('');
-  phone.splice(0, 3, '0'); // Replace country code with '0'
 
+  const phone = formData.phone.split('');
+  phone.splice(0, 3, '0');
   const requestData = {
     fullName: formData.fullName,
     email: formData.email,

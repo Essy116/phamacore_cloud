@@ -28,7 +28,6 @@ const Verify = () => {
 
         if (response.data?.success) {
           setVerificationSuccess(true);
-          // Removed auto redirect – user will click Login button
         }
       } catch (error) {
         console.error('Error verifying email:', error);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
 import {
   Form,
   FormGroup,
@@ -88,7 +88,7 @@ const ResetLink = () => {
             show={showToast}
             onClose={() => setShowToast(false)}
             bg={toastVariant}
-            delay={6000}
+            delay={8000}
             autohide
             className="position-absolute top-0 start-10 translate-middle-x mt-3"
           >

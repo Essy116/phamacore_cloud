@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import axios from 'axios';
+
 import {
   Form,
   FormGroup,
@@ -117,7 +117,6 @@ const Reset = () => {
             )}
 
             <Form onSubmit={handleSubmit} autoComplete="off">
-              {/* New Password */}
               <FormGroup className="mb-2 position-relative">
                 <FormLabel className="text-secondary">New Password</FormLabel>
                 <div className="input-group">
@@ -146,7 +145,6 @@ const Reset = () => {
                 )}
               </FormGroup>
 
-              {/* Confirm New Password */}
               <FormGroup className="mb-2 position-relative">
                 <FormLabel className="text-secondary">
                   Confirm New Password
@@ -179,7 +177,6 @@ const Reset = () => {
                 )}
               </FormGroup>
 
-              {/* Buttons */}
               <div className="d-grid gap-2">
                 <Row className="justify-content-center">
                   <Col md={6} className="d-flex justify-content-center">
@@ -191,8 +188,8 @@ const Reset = () => {
                         borderColor: '#228B22',
                         color: '#FFF',
                         fontSize: '14px',
-                        width: '100%', // Makes button fill its container
-                        maxWidth: '200px', // Prevents it from being too wide
+                        width: '100%',
+                        maxWidth: '200px',
                       }}
                     >
                       Reset Password
@@ -207,8 +204,8 @@ const Reset = () => {
                         borderColor: '#C58C4F',
                         color: '#C58C4F',
                         fontSize: '14px',
-                        width: '100%', // Makes button fill its container
-                        maxWidth: '200px', // Prevents it from being too wide
+                        width: '100%',
+                        maxWidth: '200px',
                       }}
                       onClick={() => navigate('/login')}
                     >
