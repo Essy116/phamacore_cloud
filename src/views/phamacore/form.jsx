@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '../UI/header';
 import PhoneInput from 'react-phone-input-2';
-import axios from 'axios';
+
 import { Navigate, useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { getAllPackages } from '../APIS/packageApi';
 
 import {
   getCurrentUser,
@@ -20,14 +20,9 @@ export default function Form() {
   const location = useLocation();
   const formRef = useRef(null);
   const navigate = useNavigate();
-
-  const [selectedPackage, setSelectedPackage] = useState(
-    JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
-      'phAMACore Standard'
-  );
-
+  const [maxTrainingDays, setMaxTrainingDays] = useState({});
   const [phone, setPhone] = useState('');
-
+  const [packages, setPackages] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [clientType, setClientType] = useState('');
   const [formErrors, setFormErrors] = useState({});
@@ -36,79 +31,31 @@ export default function Form() {
   const [isAccepted, setIsAccepted] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
   const [toastVariant, setToastVariant] = useState('danger');
   const user = JSON.parse(localStorage.getItem('user'));
 
   const isClientOrPending =
     user?.userType === 'Client' || user?.userType === 'Pending';
 
-  const [packageDetails, setPackageDetails] = useState({
-    trainingDaysMin: 0,
-    trainingDaysMax: 0,
-    characteristics: [],
-  });
-
   const [post, setPost] = useState({
-    psUserCount: '',
-    psBranchCount: '',
-    packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
+    userCount: '',
+    branchCount: '',
+    packageId:
+      JSON.parse(localStorage.getItem('packages'))?.selectedPackageId || 2,
     additionalNotes: '',
+    clientPackage: '',
     billingCycle: '',
     phone: '',
     email: '',
     organisationName: '',
     fullname: '',
   });
-
+  const [selectedPackage, setSelectedPackage] = useState(
+    JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
+      'phAMACore Standard'
+  );
   const [data, setData] = useState([]);
-  useEffect(() => {
-    const { psUserCount, psBranchCount } = post;
-
-    if (psUserCount && psBranchCount) {
-      getPhamacorePricing(psUserCount, psBranchCount)
-        .then((response) => {
-          const pricingData = response.data?.[0] || {};
-          const packageKey = String(
-            selectedPackage.split(' ')[1]
-          ).toLowerCase();
-
-          const filteredData = {};
-          for (let [key, value] of Object.entries(pricingData)) {
-            if (key.toLowerCase().includes(packageKey)) {
-              filteredData[key] = value;
-            }
-          }
-
-          console.log('Filtered Data:', filteredData);
-          setData(filteredData);
-        })
-        .catch((err) => {
-          console.error('Pricing Fetch Error:', err);
-          setToastMessage(
-            err.response?.data?.message ||
-              'An error occurred while fetching pricing.'
-          );
-          setToastVariant('danger');
-          setShowToast(true);
-        });
-    }
-  }, [post.psUserCount, post.psBranchCount, selectedPackage]);
-
-  const handleSelect = (pkg) => {
-    setSelectedPackage(pkg);
-  };
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('packages'));
-
-    if (saved) {
-      setSelectedPackage(saved.selectedPackage || 'phAMACore Standard');
-      setPost((prev) => ({
-        ...prev,
-        packageId: saved.selectedPackageId || '',
-      }));
-      setPackageList(saved.packageList || []);
-    }
-  }, []);
 
   const handleContact = (value) => {
     setPhone(value);
@@ -125,39 +72,38 @@ export default function Form() {
     const data = { ...post, [name]: e.target.value };
     if (
       name === 'additionalNotes' ||
-      name === 'psUserCount' ||
-      name === 'psBranchCount' ||
+      name === 'userCount' ||
+      name === 'branchCount' ||
       name === 'billingCycle'
     ) {
       updateSelection(data);
     }
   };
-  const handlePackageSelect = (event) => {
-    const selectedValue = event.target.value;
-    const selectedPkg = packagesList.find(
-      (pkg) => pkg.packageNum === selectedValue
-    );
 
-    if (!selectedPkg) return;
+  const handlePackageSelection = (e) => {
+    const packageId = Number(e.target.value);
+    const pkg = packages.find((p) => p.packageId === packageId);
+    if (!pkg) return;
 
-    setSelectedPackage(selectedPkg.description);
-
-    setPost((prevPost) => ({
-      ...prevPost,
-      packageId: selectedPkg.packageNum,
+    setPost((prev) => ({
+      ...prev,
+      [e.target.name]: packageId,
     }));
 
+    setSelectedPackage(pkg.packageName);
+
+    const storedPackages = JSON.parse(localStorage.getItem('packages')) || {};
     localStorage.setItem(
       'packages',
       JSON.stringify({
-        selectedPackage: selectedPkg.description,
-        packageID: selectedPkg.packageNum,
+        ...storedPackages,
+        selectedPackage: pkg.packageName,
+        selectedPackageId: packageId,
       })
     );
 
-    const data = { ...post, packageId: selectedPkg.description };
-    console.log(data);
-    updateSelection(data);
+    const updatedData = { ...post, [e.target.name]: packageId };
+    updateSelection(updatedData);
   };
 
   const handleErrors = (values) => {
@@ -166,8 +112,8 @@ export default function Form() {
     if (!values.organisationName) {
       errors.organisationName = 'Required';
     }
-    if (!values.psUserCount) {
-      errors.psUserCount = 'Required';
+    if (!values.userCount) {
+      errors.userCount = 'Required';
     }
 
     if (!values.phone) {
@@ -181,13 +127,15 @@ export default function Form() {
     if (!values.packageId) {
       errors.packageId = 'Required';
     }
-    if (!values.psBranchCount) {
-      errors.psBranchCount = 'Required';
+    if (!values.branchCount) {
+      errors.branchCount = 'Required';
     }
     if (!values.fullname) {
       errors.fullname = 'Required';
     }
-
+    if (!values.additionalNotes) {
+      errors.additionalNotes = 'Required';
+    }
     setFormErrors(errors);
     console.log(errors);
     return Object.keys(errors).length > 0;
@@ -206,9 +154,12 @@ export default function Form() {
     setIsLoading(true);
 
     const payload = {
-      psUserCount: Number(post.psUserCount) || 0,
-      psBranchCount: Number(post.psBranchCount) || 0,
-      packageId: Number(post.packageId) || 2,
+      psUserCount: Number(post.userCount) || 0,
+      psBranchCount: Number(post.branchCount) || 0,
+      packageId:
+        Number(post.packageId) ||
+        JSON.parse(localStorage.getItem('packages'))?.selectedPackageId ||
+        2,
       additionalNotes: post.additionalNotes || '',
     };
 
@@ -221,9 +172,11 @@ export default function Form() {
 
       setPhone('');
       setPost({
-        psUserCount: '',
-        psBranchCount: '',
-        packageId: JSON.parse(localStorage.getItem('packages'))?.packageID || 2,
+        userCount: '',
+        branchCount: '',
+        packageId:
+          JSON.parse(localStorage.getItem('packages'))?.selectedPackageId || 2,
+
         additionalNotes: '',
       });
 
@@ -237,7 +190,6 @@ export default function Form() {
           formData: post,
           initialPackage: selectedPackage,
           summary: data,
-          trainingDaysMax: packageDetails.trainingDaysMax,
         },
       });
 
@@ -290,19 +242,9 @@ export default function Form() {
     }
   };
   function capitalize(str) {
-    // ;
-    if (!isClientOrPending) return `Phamacore ${str}`;
+    if (typeof str !== 'string' || !str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleRadioChange = (event) => {
-    handleChange(event);
-    toggleDropdown();
-  };
 
   const monthlyAmount = totalAnnual / 12;
   const quarterlyAmount = totalAnnual / 4;
@@ -322,30 +264,33 @@ export default function Form() {
         email,
         userId,
         roleId,
-        clientPackage,
+        selections,
       } = response.data;
 
       const phoneNo = phone?.startsWith('0') ? '254' + phone.slice(1) : phone;
 
-      const savedPackage = JSON.parse(localStorage.getItem('packages'));
-      const selectedPackageName =
-        savedPackage?.selectedPackage || clientPackage || 'phAMACore Standard';
-      const selectedPackageId =
-        savedPackage?.selectedPackageId || packageId || '';
-
       setPost((prev) => ({
         ...prev,
-        organisationName,
-        fullname,
-        email,
-        phone: phoneNo || '',
-        userId: userId || '',
-        roleId: roleId || '',
-        packageId: clientPackage || 'Lite',
+        userId: userId ?? '',
+        roleId: roleId ?? '',
+        fullname: fullname ?? '',
+        email: email ?? '',
+        phone: phoneNo ?? '',
+        organisationName: organisationName ?? '',
+        userType: userType ?? '',
+        packageId:
+          selections?.packageId ??
+          JSON.parse(localStorage.getItem('packages'))?.selectedPackageId ??
+          2,
+        userCount: selections?.userCount ?? 0,
+        branchCount: selections?.branchCount ?? 0,
+        billingCycle: (selections?.billingCycle ?? 'MONTHLY').toUpperCase(),
+        additionalNotes: selections?.additionalInfo ?? '',
       }));
-      setClientType(userType);
-      setPhone(phoneNo);
-      console.log('User data fetched successfully:', response.data);
+
+      setClientType(userType ?? '');
+      setPhone(phoneNo ?? '');
+      console.log('User data fetched successfully:currentUser', response.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
       const msg =
@@ -360,31 +305,33 @@ export default function Form() {
   const fetchSelections = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
+
     if (!token) return;
 
     try {
       const response = await getSelections(token);
       const {
+        packageId,
         userCount,
         branchCount,
         billingCycle,
         additionalInfo,
-        clientPackage,
-      } = response.data.selections || {};
+      } = response?.data?.selections || {};
 
-      console.log(selectedPackage?.split(' ')[1]);
       setPost((prev) => ({
         ...prev,
-        psUserCount: userCount,
-        psBranchCount: branchCount,
-        packageId: clientPackage,
-        billingCycle,
-        clientPackage,
-        additionalNotes: additionalInfo || '',
+        packageId:
+          packageId ??
+          JSON.parse(localStorage.getItem('packages'))?.selectedPackageId ??
+          2,
+        userCount: userCount ?? 0,
+        branchCount: branchCount ?? 0,
+        billingCycle: (billingCycle ?? 'MONTHLY').toUpperCase(),
+        additionalNotes: additionalInfo ?? '',
       }));
 
       console.log(
-        '✅ Selections fetched successfully:',
+        '✅ Selections fetched successfully:get',
         response?.data?.selections
       );
     } catch (error) {
@@ -403,14 +350,20 @@ export default function Form() {
     if (!token) return;
 
     const payload = {
-      clientPackage: data.packageId?.split(' ').at(-1) || 'Standard',
-      userCount: Number(data.psUserCount) || 0,
-      branchCount: Number(data.psBranchCount) || 0,
-      billingCycle: data.billingCycle || 'MONTHLY',
-      additionalInfo: data.additionalNotes || '',
+      request: {
+        packageId: Number(
+          data.packageId ||
+            JSON.parse(localStorage.getItem('packages'))?.selectedPackageId ||
+            2
+        ),
+        userCount: Number(data.userCount) || 0,
+        branchCount: Number(data.branchCount) || 0,
+        billingCycle: (data.billingCycle || 'MONTHLY').toUpperCase(),
+        additionalInfo: data.additionalNotes || '',
+      },
     };
 
-    console.log('📦 Sending selection update payload:', payload);
+    console.log('📦 Sending selection update payload: PUT', payload);
 
     try {
       const response = await updateSelectionAPI(payload, token);
@@ -423,106 +376,73 @@ export default function Form() {
     }
   };
 
-  const handleErrors = (values) => {
-    const errors = {};
-
-    if (!values.organisationName) {
-      errors.organisationName = 'Required';
-    }
-    if (!values.psUserCount) {
-      errors.psUserCount = 'Required';
-    }
-
-    if (!values.phone) {
-      errors.phone = 'Required';
-    }
-
-    if (!values.email) {
-      errors.email = 'Required';
-    }
-
-    if (!values.packageId) {
-      errors.packageId = 'Required';
-    }
-    if (!values.psBranchCount) {
-      errors.psBranchCount = 'Required';
-    }
-    if (!values.fullname) {
-      errors.fullname = 'Required';
-    }
-
-    setFormErrors(errors);
-    console.log(errors);
-    return Object.keys(errors).length > 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (handleErrors(post)) {
-      return;
-    }
-    const user = JSON.parse(localStorage.getItem('user'));
-    const token = user?.token;
-    if (!token) return;
-
-    setIsLoading(true);
-
-    const payload = {
-      psUserCount: Number(post.psUserCount) || 0,
-      psBranchCount: Number(post.psBranchCount) || 0,
-      packageId: Number(post.packageId) || 2,
-      additionalNotes: post.additionalNotes || '',
-    };
-
+  const fetchPackages = async () => {
     try {
-      const response = await createClient(payload, token);
-
-      const data = response.data;
-
-      console.log('API Response:', data);
-
-      setPhone('');
-      setPost({
-        psUserCount: '',
-        psBranchCount: '',
-        packageId:
-          JSON.parse(localStorage.getItem('packages'))?.packageID || 'Standard',
-        additionalNotes: '',
-      });
-
-      setToastMessage(data.message || 'Form submitted successfully!');
-      setToastVariant('success');
-      setShowToast(true);
-
-      navigate('/summary', {
-        state: {
-          data,
-          formData: post,
-          initialPackage: selectedPackage,
-          summary: data,
-          trainingDaysMax: packageDetails.trainingDaysMax,
-        },
-      });
-
-      setTimeout(() => navigate('/login'), 3000);
-    } catch (err) {
-      console.error('API Error:', err);
-
-      setToastMessage(
-        err.response?.data?.message ||
-          'There was an error submitting the form. Please try again.'
-      );
+      const packages = await getAllPackages();
+      setPackages(packages);
+    } catch (error) {
+      setToastMessage(error);
       setToastVariant('danger');
       setShowToast(true);
-    } finally {
-      setIsLoading(false);
     }
   };
-
   useEffect(() => {
     getUserData();
+    fetchPackages();
     fetchSelections();
+  }, []);
+  useEffect(() => {
+    console.log('🎁 Selected Package:', selectedPackage);
+
+    const { userCount, branchCount } = post;
+
+    if (userCount && branchCount) {
+      getPhamacorePricing(userCount, branchCount)
+        .then((response) => {
+          console.log('📡 Raw API Response:', response.data);
+
+          const pricingData = Array.isArray(response.data)
+            ? response.data[0] || {}
+            : response.data || {};
+
+          console.log('📦 Pricing Data (first entry):', pricingData);
+
+          const packageKey = String(
+            selectedPackage.split(' ')[1] || ''
+          ).toLowerCase();
+
+          const filteredData = {};
+          for (let [key, value] of Object.entries(pricingData)) {
+            if (key.toLowerCase().includes(packageKey)) {
+              filteredData[key] = value;
+            }
+          }
+
+          console.log('🎯 Filtered Data:', filteredData);
+          setData(filteredData);
+        })
+        .catch((err) => {
+          console.error('❌ Pricing Fetch Error:', err);
+          setToastMessage(
+            err.response?.data?.message ||
+              'An error occurred while fetching pricing.'
+          );
+          setToastVariant('danger');
+          setShowToast(true);
+        });
+    }
+  }, [post.userCount, post.branchCount, selectedPackage]);
+  useEffect(() => {
+    const pkg = packages.find((p) => p.packageId === Number(post.packageId));
+    if (pkg && pkg.packageName !== selectedPackage) {
+      setSelectedPackage(pkg.packageName);
+    }
+  }, [post.packageId, packages, selectedPackage]);
+  useEffect(() => {
+    const stored = localStorage.getItem('maxTrainingDays');
+    if (stored) {
+      setMaxTrainingDays(JSON.parse(stored));
+    }
   }, []);
 
   return (
@@ -579,7 +499,6 @@ export default function Form() {
                           type="text"
                           id="fullname"
                           name="fullname"
-                          autocomplete="off"
                           readOnly={clientType === 'Client'}
                           className="form-control form-control-sm  "
                           value={post.fullname}
@@ -601,7 +520,6 @@ export default function Form() {
                         <input
                           type="emailAddress"
                           id="emailAddress"
-                          autocomplete="off"
                           name="emailAddress"
                           readOnly={clientType === 'Client'}
                           className="form-control form-control-sm "
@@ -659,7 +577,6 @@ export default function Form() {
                         <input
                           type="text"
                           id="psCompanyName"
-                          autocomplete="off"
                           name="organisationName"
                           readOnly={clientType === 'Client'}
                           className="form-control form-control-sm"
@@ -687,13 +604,13 @@ export default function Form() {
                           name="packageId"
                           className="form-select form-control form-control-sm"
                           value={post.packageId || ''}
-                          onChange={handlePackageSelect}
                           style={{
                             fontSize: '14px',
                             backgroundColor: 'white',
                           }}
+                          onChange={handlePackageSelection}
                         >
-                          {packageList.map((pkg) => (
+                          {packages.map((pkg) => (
                             <option key={pkg.packageId} value={pkg.packageId}>
                               {pkg.packageName}
                             </option>
@@ -730,20 +647,20 @@ export default function Form() {
                         </label>
                         <input
                           type="number"
-                          id="psBranchCount"
-                          name="psBranchCount"
+                          id="branchCount"
+                          name="branchCount"
                           readOnly={clientType === 'Client'}
                           className="form-control form-control-sm"
-                          value={post.psBranchCount}
+                          value={post.branchCount}
                           onChange={handleChange}
                           min="0"
                           style={{
                             fontSize: '14px',
                           }}
                         />
-                        {formErrors.psBranchCount && (
+                        {formErrors.branchCount && (
                           <p className="text-danger">
-                            {formErrors.psBranchCount}
+                            {formErrors.branchCount}
                           </p>
                         )}
                       </div>
@@ -755,20 +672,18 @@ export default function Form() {
                         <input
                           type="number"
                           readOnly={clientType === 'Client'}
-                          id="psUserCount"
-                          name="psUserCount"
+                          id="userCount"
+                          name="userCount"
                           className="form-control form-control-sm"
-                          value={post.psUserCount}
+                          value={post.userCount}
                           onChange={handleChange}
                           min="0"
                           style={{
                             fontSize: '14px',
                           }}
                         />
-                        {formErrors.psUserCount && (
-                          <p className="text-danger">
-                            {formErrors.psUserCount}
-                          </p>
+                        {formErrors.userCount && (
+                          <p className="text-danger">{formErrors.userCount}</p>
                         )}
                       </div>
 
@@ -784,7 +699,7 @@ export default function Form() {
                           style={{
                             fontSize: '14px',
                           }}
-                          value={packageDetails.trainingDaysMax}
+                          value={maxTrainingDays[selectedPackage] || ''}
                           readOnly
                         />
                       </div>
@@ -862,7 +777,7 @@ export default function Form() {
                               className="card-text  mb-0"
                               style={{ color: '#C58C4F', fontSize: '14px' }}
                             >
-                              {post.psBranchCount}
+                              {post.branchCount}
                             </p>
                           </div>
                           <div className="col text-center">
@@ -871,7 +786,7 @@ export default function Form() {
                               className="card-text  mb-0"
                               style={{ color: '#C58C4F', fontSize: '14px' }}
                             >
-                              {post.psUserCount}
+                              {post.userCount}
                             </p>
                           </div>
                           <div className="col text-center">
@@ -880,7 +795,7 @@ export default function Form() {
                               className="card-text mb-0"
                               style={{ color: '#C58C4F', fontSize: '14px' }}
                             >
-                              {packageDetails.trainingDaysMax}
+                              {maxTrainingDays[selectedPackage] || ''}
                             </p>
                           </div>
                         </div>
@@ -892,7 +807,6 @@ export default function Form() {
                   <div>
                     <div style={{ padding: '10px' }}>
                       <div className="table-container">
-                        {/* First Table */}
                         <table className="table table-bordered">
                           <thead className="table-light">
                             <tr>
@@ -901,7 +815,7 @@ export default function Form() {
                                 className="text-start"
                                 style={{
                                   fontSize: '14px',
-                                  // fontFamily: "Poppins",
+
                                   lineHeight: '1.0',
                                   fontWeight: '600',
                                   color: 'black',
@@ -915,7 +829,7 @@ export default function Form() {
                                 className="text-center"
                                 style={{
                                   fontSize: '14px',
-                                  // fontFamily: "Poppins, sans-serif",
+
                                   lineHeight: '1.0',
                                   fontWeight: '600',
                                   color: 'black',
@@ -966,7 +880,7 @@ export default function Form() {
                           </tbody>
                         </table>
                       </div>
-                      {/* Second Table */}
+
                       <div className="d-flex justify-content-end">
                         <div
                           className="table-container"
@@ -980,7 +894,7 @@ export default function Form() {
                                   className="text-start"
                                   style={{
                                     fontSize: '14px',
-                                    // fontFamily: "Poppins",
+
                                     lineHeight: '1.0',
                                     fontWeight: '600',
                                     color: 'black',
@@ -994,7 +908,7 @@ export default function Form() {
                                   className="text-center"
                                   style={{
                                     fontSize: '14px',
-                                    // fontFamily: "Poppins, sans-serif",
+
                                     lineHeight: '1.0',
                                     fontWeight: '600',
                                     color: 'black',
@@ -1098,7 +1012,7 @@ export default function Form() {
                                   className="text-center"
                                   style={{
                                     fontSize: '14px',
-                                    // fontFamily: "Poppins",
+
                                     lineHeight: '1.0',
                                     fontWeight: '600',
                                     color: 'black',
@@ -1112,7 +1026,7 @@ export default function Form() {
                                   className="text-center"
                                   style={{
                                     fontSize: '14px',
-                                    // fontFamily: "Poppins, sans-serif",
+
                                     lineHeight: '1.0',
                                     fontWeight: '600',
                                     color: 'black',
