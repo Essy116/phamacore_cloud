@@ -10,7 +10,9 @@ import { getCurrentUser } from '../APIS/headerApi';
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [selectedPackage, setSelectedPackage] = useState('phAMACore Standard');
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const isLoggedIn = !!storedUser;
   const [showDropdown, setShowDropdown] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -19,18 +21,16 @@ export default function Header() {
   const [userDetails, setUserDetails] = useState({
     psUserCount: '',
     psBranchCount: '',
-    packageId: '',
+    packageId:
+      JSON.parse(localStorage.getItem('packages'))?.selectedPackageId || 2,
     additionalNotes: '',
     billingCycle: '',
     phone: '',
     email: '',
     organisationName: '',
     fullname: '',
+    clientPackage: '',
   });
-
-  const [selectedPackage, setSelectedPackage] = useState('phAMACore Standard');
-  const storedUser = JSON.parse(localStorage.getItem('user'));
-  const isLoggedIn = !!storedUser;
 
   const pkgName =
     JSON.parse(localStorage.getItem('packages'))?.selectedPackage ||
@@ -43,23 +43,12 @@ export default function Header() {
 
     try {
       const response = await getCurrentUser(token);
-      const {
-        phone,
-        organisationName,
-        fullname,
-        email,
-        userType,
-        clientPackage,
-      } = response.data;
+      const { phone, organisationName, fullname, email } = response.data;
 
       const formattedPhone =
         phone?.startsWith('0') && phone.length === 10
           ? '254' + phone.slice(1)
           : phone;
-
-      const savedPackage = JSON.parse(localStorage.getItem('packages'));
-      const selectedPackageName =
-        savedPackage?.selectedPackage || clientPackage || 'phAMACore Standard';
 
       setUserDetails({
         fullname,
@@ -67,10 +56,6 @@ export default function Header() {
         phone: formattedPhone,
         organisationName,
       });
-
-      setSelectedPackage(selectedPackageName);
-
-      console.log('📦 Selected Package:', selectedPackageName);
     } catch (error) {
       const msg =
         error.response?.data?.detail ||
