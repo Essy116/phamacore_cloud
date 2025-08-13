@@ -75,12 +75,12 @@ const Login = () => {
       }
 
       const selectedPackage = location.state?.selectedPackage || '';
-
       if (response.data.userType === 'User') {
         const userData = {
           userId: response.data.userDetails.userId,
           email: response.data.userDetails.email,
           roleId: response.data.userType,
+          userType: response.data.userType,
           token: response.data.token,
         };
 
@@ -92,11 +92,13 @@ const Login = () => {
       ) {
         const clientDetails = {
           email: response.data.clientDetails.email,
-          cusCode: response.data.clientDetails.cusCode,
+
           token: response.data.token,
+          userType: response.data.userType,
         };
+
         localStorage.setItem('user', JSON.stringify(clientDetails));
-        localStorage.setItem('cusCode', response.data.clientDetails.cusCode);
+
         localStorage.setItem('token', response.data.token);
       } else {
         console.warn('Unhandled userType:', response.data.userType);
