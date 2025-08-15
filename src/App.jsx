@@ -7,6 +7,8 @@ import Login from './views/auth/login';
 import Reset from './views/reset/reset';
 import ResetLink from './views/reset/resetlink';
 import SignIn from './views/auth/signin';
+import UserForm from './views/components/UserForm';
+import DisplayCard from './views/components/DisplayCard';
 import Verify from './views/auth/verify';
 const router = createBrowserRouter([
   {
@@ -45,6 +47,14 @@ const router = createBrowserRouter([
   {
     path: 'summary',
     element: <Summary />,
+  },
+  {
+    path: 'UserForm',
+    element: <UserForm />,
+  },
+  {
+    path: 'displayCard',
+    element: <DisplayCard />,
   },
 ]);
 
