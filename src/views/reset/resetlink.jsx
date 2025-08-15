@@ -15,7 +15,7 @@ import {
   ToastContainer,
 } from 'react-bootstrap';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
-import { resetPasswordRequest } from '../APIS/resetlinkApi';
+import { resetPasswordRequest } from '../APIS/resetlinkApi.js';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 
 const ResetLink = () => {
