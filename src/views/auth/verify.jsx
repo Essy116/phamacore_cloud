@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { verifyEmail } from '../APIS/verifyApi';
+import { verifyEmail } from '../APIS/verifyApi.js';
 import { useState, useEffect } from 'react';
 import { Toast, Button, Card, CardBody } from 'react-bootstrap';
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { getAllPackages } from '../APIS/packageApi';
+import { getAllPackages } from '../APIS/packageApi.js';
 import Header from '../UI/header';
 
 export default function Packages() {

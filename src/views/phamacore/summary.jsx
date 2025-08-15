@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Toast, Button } from 'react-bootstrap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -83,7 +83,7 @@ const Summary = () => {
                 <input
                   type="email"
                   className="form-control"
-                  value={formData?.emailAddress || ''}
+                  value={formData?.email || ''}
                   readOnly
                 />
               </div>
@@ -119,7 +119,7 @@ const Summary = () => {
                 <input
                   type="text"
                   className="form-control"
-                  value={formData?.psBranchCount || ''}
+                  value={formData?.branchCount || ''}
                   readOnly
                 />
               </div>
@@ -128,7 +128,7 @@ const Summary = () => {
                 <input
                   type="text"
                   className="form-control"
-                  value={formData?.psUserCount || ''}
+                  value={formData?.userCount || ''}
                   readOnly
                 />
               </div>

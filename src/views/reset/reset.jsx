@@ -16,7 +16,7 @@ import {
 } from 'react-bootstrap';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
-import { resetPassword } from '../APIS/resetApi';
+import { resetPassword } from '../APIS/resetApi.js';
 const Reset = () => {
   const navigate = useNavigate();
   const { token } = useParams();

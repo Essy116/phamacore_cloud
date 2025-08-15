@@ -17,7 +17,7 @@ import {
   ToastContainer,
 } from 'react-bootstrap';
 import { BsLockFill } from 'react-icons/bs';
-import loginApi from '../APIS/loginApi';
+import loginApi from '../APIS/loginApi.js';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 

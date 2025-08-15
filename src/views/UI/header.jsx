@@ -5,7 +5,7 @@ import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import phamacore from '../../assets/phamacore.png';
 import { Toast, ToastContainer } from 'react-bootstrap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { getCurrentUser } from '../APIS/headerApi';
+import { getCurrentUser } from '../APIS/headerApi.js';
 
 export default function Header() {
   const location = useLocation();
