@@ -1,0 +1,14 @@
+import axios from "axios";
+
+const BASE_URL = "http://20.164.20.36:86";
+
+export const getAllPackages = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/v1/package/packages`);
+    return response.data.packages;
+  } catch (error) {
+    throw (
+      error?.response?.data?.detail || "Failed to fetch packages. Try again later."
+    );
+  }
+};
