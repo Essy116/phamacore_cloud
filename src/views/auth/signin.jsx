@@ -185,16 +185,6 @@ export default function SignIn() {
             </div>
 
             <Form onSubmit={handleSubmit}>
-              {loading && (
-                <div className="text-center my-3">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p style={{ fontSize: '12px', color: '#888' }}>
-                    Processing your request...
-                  </p>
-                </div>
-              )}
               <FormGroup className="mb-1">
                 <FormLabel className="text-secondary">Full Name</FormLabel>
                 <FormControl
@@ -371,9 +361,16 @@ export default function SignIn() {
                   color: '#FFF',
                   fontSize: '14px',
                 }}
-                disabled={!agreed}
+                disabled={!agreed || loading}
               >
-                Sign up
+                {loading && (
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                )}
+                {loading ? 'Processing...' : 'Sign Up'}
               </Button>
             </Form>
           </CardBody>
