@@ -143,12 +143,12 @@ const ResetLink = () => {
                     >
                       {loading && (
                         <span
-                          className="spinner-border spinner-border-sm"
+                          className="spinner-border spinner-border-sm me-2"
                           role="status"
                           aria-hidden="true"
                         ></span>
                       )}
-                      {loading ? 'Processing...' : 'Reset'}
+                      {loading ? 'Processing...' : 'Reset Password'}
                     </Button>
                   </Col>
 

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form,
   FormGroup,
@@ -12,27 +11,28 @@ import {
   Row,
   Col,
   Toast,
-  ToastContainer,
 } from 'react-bootstrap';
 import cloudlogo from '../../assets/MicrosoftTeams-image.png';
 import corebaseLogo from '../../assets/corebaseLogo.jpeg';
 import { resetPassword } from '../APIS/resetApi.js';
+
 const Reset = () => {
   const navigate = useNavigate();
   const { token } = useParams();
+
   const [formData, setFormData] = useState({
     newPassword: '',
     confirmNewPassword: '',
   });
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [message, setMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('danger');
-  const [searchParams] = useSearchParams();
-  // const token = searchParams.get('s_token');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -61,8 +61,8 @@ const Reset = () => {
 
       const payload = {
         token,
-        newPassword: formData.newPassword,
-        confirmPassword: formData.confirmNewPassword,
+        newPassword,
+        confirmPassword: confirmNewPassword,
       };
 
       console.log('Sending payload:', payload);
@@ -70,20 +70,16 @@ const Reset = () => {
       const response = await resetPassword(payload);
       console.log('API response:', response);
 
-      if (response.status === 200) {
-        console.log('Password reset successful, navigating to login...');
+      setToastMessage('Password reset successful! Redirecting to login...');
+      setToastVariant('success');
+      setShowToast(true);
+
+      setTimeout(() => {
         navigate('/login');
-      } else {
-        console.error('Reset failed with status:', response.status);
-        setToastMessage(response.data.message || 'Something went wrong.');
-        setToastVariant('danger');
-        setShowToast(true);
-      }
+      }, 2000);
     } catch (error) {
-      console.error('Reset password error:', error);
       setToastMessage(
-        error.response?.data?.detail ||
-          'An error occurred while resetting password.'
+        error.response?.data?.message || 'Failed to reset password'
       );
       setToastVariant('danger');
       setShowToast(true);
@@ -96,6 +92,17 @@ const Reset = () => {
     <div className="container-fluid min-vh-100 d-flex align-items-center">
       <div className="mx-auto w-100" style={{ maxWidth: '450px' }}>
         <Card className="login-card shadow w-100 h-auto">
+          <Toast
+            show={showToast}
+            onClose={() => setShowToast(false)}
+            bg={toastVariant}
+            delay={6000}
+            autohide
+            className="position-fixed top-10 start-10 translate-middle-x "
+          >
+            <Toast.Body className="text-white">{toastMessage}</Toast.Body>
+          </Toast>
+
           <CardBody className="d-flex flex-column justify-content-between p-4 flex-grow-1">
             <div className="text-center">
               <img
@@ -134,9 +141,7 @@ const Reset = () => {
                     onClick={() => setShowNewPassword(!showNewPassword)}
                   >
                     <i
-                      className={`fa ${
-                        showNewPassword ? 'fa-eye-slash' : 'fa-eye'
-                      } password-icon`}
+                      className={`fa ${showNewPassword ? 'fa-eye-slash' : 'fa-eye'} password-icon`}
                     ></i>
                   </span>
                 </div>
@@ -159,7 +164,7 @@ const Reset = () => {
                     className="custom-input"
                   />
                   <span
-                    className="input-group-text bg-transparent "
+                    className="input-group-text bg-transparent"
                     role="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
@@ -191,10 +196,19 @@ const Reset = () => {
                         width: '100%',
                         maxWidth: '200px',
                       }}
+                      disabled={loading}
                     >
-                      Reset Password
+                      {loading && (
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      )}
+                      {loading ? 'Processing...' : 'Reset '}
                     </Button>
                   </Col>
+
                   <Col md={6} className="d-flex justify-content-center">
                     <Button
                       type="button"
@@ -213,31 +227,16 @@ const Reset = () => {
                     </Button>
                   </Col>
                 </Row>
-                <ToastContainer position="top-end" className="p-3">
-                  <Toast
-                    onClose={() => setShowToast(false)}
-                    show={showToast}
-                    delay={3000}
-                    autohide
-                    bg={toastVariant}
-                  >
-                    <Toast.Body className="text-white">
-                      {toastMessage}
-                    </Toast.Body>
-                  </Toast>
-                </ToastContainer>
               </div>
             </Form>
           </CardBody>
         </Card>
+
         <footer id="footer">
           <div className="copy-right text-center my-2">
             <p
               className="m-0 company-sm"
-              style={{
-                fontWeight: '600',
-                fontSize: '9px',
-              }}
+              style={{ fontWeight: '600', fontSize: '9px' }}
             >
               Powered by
             </p>
